@@ -202,8 +202,8 @@ async function testTouchTracking() {
 
     // Divide canvas into quadrants
     const quadrants = [];
-    const numRows = 2; // Number of rows
-    const numCols = 2; // Number of columns
+    const numRows = 16; // Number of rows
+    const numCols = 8; // Number of columns
 
     // Create and append quadrants
     for (let row = 0; row < numRows; row++) {
