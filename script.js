@@ -263,6 +263,8 @@ async function testTouchTracking() {
       }
 
       setTimeout(() => {
+        dialog.style.display = "none";
+        touchedQuadrants.clear();
         resolve({
           name: "Touch Tracking",
           success: false,
