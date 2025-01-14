@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Feature Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Previous content remains the same -->
+    <div class="card">
+        <h1>Phone Feature Test</h1>
+        <h2>Device Information</h2>
+        <div id="device-info"></div>
+        <button id="start-test">Start All Tests</button>
+    </div>
+
+    <div class="card">
+        <h2>Available Tests</h2>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <div id="tests">
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Screen Resolution</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Device Orientation</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Vibration</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Touch Support</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Touch Tracking</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Geolocation</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Sound Test</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Microphone Test</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="results-section" class="card">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+        <button id="restart-test">Run Tests Again</button>
+    </div>
+
+    <div class="dialog-fullscreen" id="touch-dialog">
+        <div class="touch-canvas" id="touch-canvas">
+            <h3>Touch Test</h3>
+            <p class="touch-instructions">Draw anywhere on this screen to test your screen for dead zones.
+                Touch points will be visualized as blue dots.</p>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <img id="loading" src="./imgs/ring-resize.svg" alt="Loading...">
+    </div>
+    <div class="dialog" id="sound-dialog">
+        <h3>Sound Test</h3>
+        <p>A sound will play when you click the button below. Did you hear it?</p>
+        <button id="play-sound">Play Sound</button>
+        <div class="dialog-buttons">
+            <button id="sound-yes">Yes, I heard it</button>
+            <button id="sound-no">No, I didn't hear it</button>
+        </div>
+    </div>
+
+    <div class="dialog" id="mic-dialog">
+        <h3>Microphone Test</h3>
+        <p>We'll record 5 seconds of audio and play it back.</p>
+        <div class="timer" id="mic-timer"></div>
+        <button id="start-recording">Start Recording</button>
+        <button id="play-recording" style="display: none;">Play Recording</button>
+        <button id="re-record" style="display:none;">Re-record</button>
+        <div class="dialog-buttons">
+            <button id="mic-yes" style="display: none;">Audio Playback Worked</button>
+            <button id="mic-no" style="display: none;">Audio Playback Failed</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

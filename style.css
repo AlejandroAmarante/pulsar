@@ -1,0 +1,215 @@
+/* Previous styles remain the same */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f0f2f5;
+}
+
+h1 {
+  text-align: center;
+  margin: 0;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 8px 0;
+  width: 100%;
+}
+
+button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.status {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.success {
+  background: #22c55e;
+}
+
+.failure {
+  background: #ef4444;
+}
+
+.pending {
+  background: #f59e0b;
+}
+
+.recording {
+  background: #ef4444;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+#results-section {
+  display: none;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+.progress {
+  width: 0%;
+  height: 100%;
+  background: #2563eb;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.dialog {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 90%;
+  max-width: 400px;
+}
+
+.dialog-fullscreen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  box-shadow: none;
+  border-radius: 0; /* Remove rounded corners for fullscreen */
+  text-align: center;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+#loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 75px;
+  height: 75px;
+}
+
+.dialog-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.dialog-buttons button {
+  flex: 1;
+}
+
+.quadrant {
+  border: 1px solid #ccc;
+}
+
+.touch-canvas {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  background: white;
+}
+
+.touch-point {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #2563eb;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.5;
+  transition: opacity 1s;
+}
+
+.touch-point.fade {
+  opacity: 0;
+}
+
+.touch-instructions {
+  text-align: center;
+  color: #666;
+  margin: 10px 0;
+  z-index: 999;
+  position: relative;
+}
+.touch-clear {
+  margin-top: 10px;
+  background: #ef4444;
+}
+
+.timer {
+  text-align: center;
+  font-size: 1.2em;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.record-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
