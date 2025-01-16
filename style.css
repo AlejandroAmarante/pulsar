@@ -47,6 +47,8 @@ button:disabled {
 .status {
   width: 16px;
   height: 16px;
+  min-width: 16px;
+  min-height: 16px;
   border-radius: 50%;
 }
 
@@ -172,21 +174,6 @@ button:disabled {
   background: white;
 }
 
-.touch-point {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #2563eb;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0.5;
-  transition: opacity 1s;
-}
-
-.touch-point.fade {
-  opacity: 0;
-}
-
 .touch-instructions {
   text-align: center;
   color: #666;
@@ -194,6 +181,7 @@ button:disabled {
   z-index: 999;
   position: relative;
 }
+
 .touch-clear {
   margin-top: 10px;
   background: #ef4444;

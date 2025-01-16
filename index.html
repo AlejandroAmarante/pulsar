@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Feature Test</title>
+    <title>Pulsar Phone Test</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <!-- Previous content remains the same -->
     <div class="card">
-        <h1>Phone Feature Test</h1>
+        <h1>Pulsar Phone Test</h1>
         <h2>Device Information</h2>
         <div id="device-info"></div>
         <button id="start-test">Start All Tests</button>
@@ -25,19 +25,7 @@
         <div id="tests">
             <div class="result">
                 <div class="status pending"></div>
-                <span>Screen Resolution</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Device Orientation</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
                 <span>Vibration</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Touch Support</span>
             </div>
             <div class="result">
                 <div class="status pending"></div>
@@ -49,7 +37,15 @@
             </div>
             <div class="result">
                 <div class="status pending"></div>
-                <span>Sound Test</span>
+                <span>Low Frequency Sound Test</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Mid Frequency Sound Test</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>High Frequency Sound Test</span>
             </div>
             <div class="result">
                 <div class="status pending"></div>
@@ -76,6 +72,7 @@
     <div class="overlay" id="overlay">
         <img id="loading" src="./imgs/ring-resize.svg" alt="Loading...">
     </div>
+
     <div class="dialog" id="sound-dialog">
         <h3>Sound Test</h3>
         <p>A sound will play when you click the button below. Did you hear it?</p>
@@ -99,7 +96,8 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="./scripts/main.js"></script>
+
 </body>
 
 </html>
