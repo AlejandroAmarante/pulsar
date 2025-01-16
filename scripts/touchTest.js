@@ -4,70 +4,61 @@ export async function testTouchTracking() {
     const overlay = document.getElementById("overlay");
     const canvas = document.getElementById("touch-canvas");
 
-    // Clear any existing content and event listeners
     cleanupTouchTest();
 
-    // Add progress indicator
-    const progressIndicator = document.createElement("div");
-    progressIndicator.className = "touch-progress";
-    progressIndicator.style.position = "fixed";
-    progressIndicator.style.top = "20px";
-    progressIndicator.style.left = "50%";
-    progressIndicator.style.transform = "translateX(-50%)";
-    progressIndicator.style.color = "#fff";
-    progressIndicator.style.padding = "10px";
-    progressIndicator.style.borderRadius = "5px";
-    progressIndicator.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-    progressIndicator.style.zIndex = "9999";
-    progressIndicator.style.pointerEvents = "none";
-    canvas.appendChild(progressIndicator);
+    // Calculate grid dimensions based on screen size
+    const calculateGrid = () => {
+      const minSquareSize = 40; // Minimum size for each square in pixels
+      const width = window.innerWidth;
+      const height = window.innerHeight;
 
-    const instructions = document.createElement("div");
-    instructions.className = "touch-instructions";
-    instructions.style.position = "fixed";
-    instructions.style.top = "50%";
-    instructions.style.left = "50%";
-    instructions.style.transform = "translate(-50%, -50%)";
-    instructions.style.color = "#fff";
-    instructions.style.textAlign = "center";
-    instructions.style.zIndex = "9999";
-    instructions.style.pointerEvents = "none";
-    instructions.style.padding = "10px";
-    instructions.style.borderRadius = "5px";
-    instructions.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-    canvas.appendChild(instructions);
+      const numCols = Math.floor(width / minSquareSize);
+      const numRows = Math.floor(height / minSquareSize);
 
-    dialog.style.display = "block";
-    overlay.style.display = "block";
+      return {
+        numRows,
+        numCols,
+        squareSize: Math.min(width / numCols, height / numRows),
+      };
+    };
+
+    const grid = calculateGrid();
 
     // Configuration
     const config = {
-      numRows: 16,
-      numCols: 8,
-      timeoutSeconds: 20,
-      minimumCoverage: 1.0, // 85% coverage required for success
+      numRows: grid.numRows,
+      numCols: grid.numCols,
+      timeoutSeconds: 30,
+      minimumCoverage: 1.0,
+      squareSize: grid.squareSize,
     };
+
+    // Add UI elements
+    const progressIndicator = document.createElement("div");
+    const instructions = document.createElement("div");
+    setupUI(progressIndicator, instructions, canvas);
+
+    dialog.style.display = "block";
+    overlay.style.display = "block";
 
     const quadrants = [];
     let timeoutId = null;
     const touchedQuadrants = new Set();
 
-    // Create quadrants with optimized layout calculation
+    // Create responsive quadrants
     const createQuadrants = () => {
       const fragment = document.createDocumentFragment();
-      const quadrantWidth = 100 / config.numCols;
-      const quadrantHeight = 100 / config.numRows;
 
       for (let row = 0; row < config.numRows; row++) {
         for (let col = 0; col < config.numCols; col++) {
           const quadrant = document.createElement("div");
           quadrant.className = "quadrant";
           Object.assign(quadrant.style, {
-            width: `${quadrantWidth}%`,
-            height: `${quadrantHeight}%`,
+            width: `${config.squareSize}px`,
+            height: `${config.squareSize}px`,
             position: "absolute",
-            left: `${quadrantWidth * col}%`,
-            top: `${quadrantHeight * row}%`,
+            left: `${config.squareSize * col}px`,
+            top: `${config.squareSize * row}px`,
             backgroundColor: "rgba(255, 255, 255, 0.1)",
             border: "1px solid rgb(245, 245, 245)",
             transition: "background-color 0.2s ease",
@@ -80,36 +71,7 @@ export async function testTouchTracking() {
       canvas.appendChild(fragment);
     };
 
-    // Optimize touch handling with throttling
-    let lastHandleTime = 0;
-    const throttleMs = 16; // ~60fps
-
-    function updateProgress() {
-      const progress = (
-        (touchedQuadrants.size / quadrants.length) *
-        100
-      ).toFixed(1);
-      progressIndicator.textContent = `Coverage: ${progress}%`;
-
-      // Update instructions based on progress
-      if (progress < 20) {
-        instructions.textContent =
-          "Draw your finger across the screen to test for dead zones";
-      } else if (progress < 50) {
-        instructions.textContent = "Keep going! Make sure to cover all areas";
-      } else if (progress < 85) {
-        instructions.textContent = "Almost there! Check for any missed spots";
-      } else {
-        instructions.textContent =
-          "Great coverage! Just a few more spots to check";
-      }
-    }
-
     function handleTouch(e) {
-      const now = Date.now();
-      if (now - lastHandleTime < throttleMs) return;
-      lastHandleTime = now;
-
       e.preventDefault();
       const touches = e.touches || [e];
       const rect = canvas.getBoundingClientRect();
@@ -119,9 +81,8 @@ export async function testTouchTracking() {
         const y = touch.clientY - rect.top;
 
         if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-          // Use more efficient quadrant checking
-          const col = Math.floor((x / rect.width) * config.numCols);
-          const row = Math.floor((y / rect.height) * config.numRows);
+          const col = Math.floor(x / config.squareSize);
+          const row = Math.floor(y / config.squareSize);
           const index = row * config.numCols + col;
 
           if (
@@ -136,8 +97,19 @@ export async function testTouchTracking() {
         }
       }
 
-      // Check completion
-      // Check completion
+      checkCompletion();
+    }
+
+    function updateProgress() {
+      const progress = (
+        (touchedQuadrants.size / quadrants.length) *
+        100
+      ).toFixed(1);
+      progressIndicator.textContent = `Coverage: ${progress}%`;
+      updateInstructions(progress, instructions);
+    }
+
+    function checkCompletion() {
       if (touchedQuadrants.size >= quadrants.length * config.minimumCoverage) {
         cleanup();
         resolve({
@@ -158,17 +130,16 @@ export async function testTouchTracking() {
       overlay.style.display = "none";
     }
 
-    // Initialize test
+    // Initialize
     createQuadrants();
     updateProgress();
 
-    // Add event listeners with named functions for proper cleanup
+    // Event listeners
     canvas.addEventListener("touchmove", handleTouch, { passive: false });
     canvas.addEventListener("mousemove", handleTouch);
-
-    // Store the event listeners and handler function on the canvas element
     canvas._touchHandler = handleTouch;
-    // Set timeout
+
+    // Timeout
     timeoutId = setTimeout(() => {
       const coverage = (
         (touchedQuadrants.size / quadrants.length) *
@@ -184,17 +155,75 @@ export async function testTouchTracking() {
   });
 }
 
+function setupUI(progressIndicator, instructions, canvas) {
+  const uiElements = [
+    {
+      element: progressIndicator,
+      className: "touch-progress",
+      styles: {
+        position: "fixed",
+        top: "20px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        color: "#fff",
+        padding: "10px",
+        borderRadius: "5px",
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        zIndex: "9999",
+        pointerEvents: "none",
+      },
+    },
+    {
+      element: instructions,
+      className: "touch-instructions",
+      styles: {
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        color: "#fff",
+        textAlign: "center",
+        zIndex: "9999",
+        pointerEvents: "none",
+        padding: "10px",
+        borderRadius: "5px",
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+      },
+    },
+  ];
+
+  uiElements.forEach(({ element, className, styles }) => {
+    element.className = className;
+    Object.assign(element.style, styles);
+    canvas.appendChild(element);
+  });
+}
+
+function updateInstructions(progress, instructions) {
+  const messages = {
+    20: "Draw your finger across the screen to test for dead zones",
+    50: "Keep going! Make sure to cover all areas",
+    85: "Almost there! Check for any missed spots",
+    100: "Great coverage! Just a few more spots to check",
+  };
+
+  for (const [threshold, message] of Object.entries(messages)) {
+    if (progress < threshold) {
+      instructions.textContent = message;
+      break;
+    }
+  }
+}
+
 function cleanupTouchTest() {
   const canvas = document.getElementById("touch-canvas");
   if (!canvas) return;
 
-  // Remove event listeners if they exist
   if (canvas._touchHandler) {
     canvas.removeEventListener("touchmove", canvas._touchHandler);
     canvas.removeEventListener("mousemove", canvas._touchHandler);
     delete canvas._touchHandler;
   }
 
-  // Clear the canvas content
   canvas.innerHTML = "";
 }
