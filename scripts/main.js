@@ -7,29 +7,33 @@ import {
 } from "./soundTest.js";
 import { testMicrophone } from "./microphoneTest.js";
 import { testTouchTracking } from "./touchTest.js";
-
-// Event Listeners
-document.getElementById("start-test").addEventListener("click", async () => {
-  document.getElementById("start-test").disabled = true;
-  await runTests();
-  document.getElementById("start-test").disabled = false;
-});
-
-document.getElementById("restart-test").addEventListener("click", async () => {
-  document.getElementById("results-section").style.display = "none";
-  document.getElementById("progress").style.width = "0%";
-  document
-    .querySelectorAll(".status")
-    .forEach((dot) => (dot.className = "status pending"));
-  resetTests();
-  await runTests();
-});
-
-getDeviceInfo();
+import {
+  testShortVibration,
+  testMediumVibration,
+  testLongVibration,
+} from "./vibrationTest.js";
 
 async function runTests() {
   const tests = [
-    testVibration,
+    ...(navigator.vibrate
+      ? [testShortVibration, testMediumVibration, testLongVibration]
+      : [
+          async () => ({
+            name: "Short Vibration Test",
+            success: false,
+            details: "Vibration API not supported.",
+          }),
+          async () => ({
+            name: "Medium Vibration Test",
+            success: false,
+            details: "Vibration API not supported.",
+          }),
+          async () => ({
+            name: "Long Vibration Test",
+            success: false,
+            details: "Vibration API not supported.",
+          }),
+        ]),
     testTouchTracking,
     testGeolocation,
     testLowFrequency, // Separate test for low frequency
@@ -37,6 +41,17 @@ async function runTests() {
     testHighFrequency, // Separate test for high frequency
     testMicrophone,
   ];
+
+  let startTestButton = document.getElementById("start-test");
+  startTestButton.disabled = true;
+
+  let startTestButtonText =
+    startTestButton.getElementsByClassName("button-text")[0];
+  startTestButtonText.textContent = "Running Tests...";
+
+  let buttonLoading =
+    startTestButton.getElementsByClassName("button-loading")[0];
+  buttonLoading.style.display = "block";
 
   let results = [];
   const progress = document.getElementById("progress");
@@ -46,6 +61,12 @@ async function runTests() {
   for (let i = 0; i < tests.length; i++) {
     const result = await tests[i]();
     results.push(result);
+    let nextTestIndex = i + 1 < tests.length ? i + 1 : i; // Avoid overflow by using the last test if it's out of bounds
+
+    startTestButtonText.textContent = `Testing ${tests[nextTestIndex].name
+      .replace("test", " ")
+      .replace(/([A-Z])/g, " $1")
+      .trim()}`;
 
     // Update progress bar
     progress.style.width = `${((i + 1) / tests.length) * 100}%`;
@@ -70,6 +91,11 @@ async function runTests() {
          </div>`
     )
     .join("");
+
+  startTestButton.disabled = false;
+  startTestButtonText.textContent = "Start All Tests";
+
+  buttonLoading.style.display = "none";
 
   window.scrollTo({
     top: document.body.scrollHeight,
@@ -114,14 +140,21 @@ function resetTests() {
   getDeviceInfo();
 }
 
-async function testVibration() {
-  if ("vibrate" in navigator) navigator.vibrate(500);
-  return {
-    name: "Vibration",
-    success: "vibrate" in navigator,
-    details:
-      "vibrate" in navigator
-        ? "Vibration API supported"
-        : "Vibration API not supported",
-  };
-}
+getDeviceInfo();
+
+// Event Listeners
+document.getElementById("start-test").addEventListener("click", async () => {
+  document.getElementById("start-test").disabled = true;
+  await runTests();
+  document.getElementById("start-test").disabled = false;
+});
+
+document.getElementById("restart-test").addEventListener("click", async () => {
+  document.getElementById("results-section").style.display = "none";
+  document.getElementById("progress").style.width = "0%";
+  document
+    .querySelectorAll(".status")
+    .forEach((dot) => (dot.className = "status pending"));
+  resetTests();
+  await runTests();
+});

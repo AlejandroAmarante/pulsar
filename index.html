@@ -4,19 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <title>Pulsar Phone Test</title>
 
     <link rel="icon" type="image/x-icon" href="imgs/favicon.svg">
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
     <!-- Previous content remains the same -->
     <div class="card">
-        <h1>Pulsar Phone Test</h1>
+        <div id="logo">
+            <img src="imgs/favicon.svg" alt="Pulsar Logo">
+            <h1>Pulsar Phone Test</h1>
+        </div>
         <h2>Device Information</h2>
         <div id="device-info"></div>
-        <button id="start-test">Start All Tests</button>
+        <button id="start-test"><img class="button-loading" src="imgs/ring-resize.svg" alt="Loading..."> <span
+                class="button-text">Start All
+                Tests</span></button>
     </div>
 
     <div class="card">
@@ -27,7 +38,15 @@
         <div id="tests">
             <div class="result">
                 <div class="status pending"></div>
-                <span>Vibration</span>
+                <span>Short Vibration</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Medium Vibration</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Long Vibration</span>
             </div>
             <div class="result">
                 <div class="status pending"></div>
@@ -73,6 +92,16 @@
 
     <div class="overlay" id="overlay">
         <img id="loading" src="./imgs/ring-resize.svg" alt="Loading...">
+    </div>
+
+    <div class="dialog" id="vibration-dialog">
+        <h3>Vibration Test</h3>
+        <p>The device will vibrate when you click the button below. Did you feel it?</p>
+        <button id="vibrate-test">Play Sound</button>
+        <div class="dialog-buttons">
+            <button id="vibration-yes">Yes, I heard it</button>
+            <button id="vibration-no">No, I didn't hear it</button>
+        </div>
     </div>
 
     <div class="dialog" id="sound-dialog">
