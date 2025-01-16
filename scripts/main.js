@@ -115,7 +115,7 @@ function resetTests() {
 }
 
 async function testVibration() {
-  navigator.vibrate(200);
+  if ("vibrate" in navigator) navigator.vibrate(500);
   return {
     name: "Vibration",
     success: "vibrate" in navigator,
