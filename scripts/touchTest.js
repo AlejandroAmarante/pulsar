@@ -8,23 +8,47 @@ export async function testTouchTracking() {
 
     // Calculate grid dimensions based on screen size
     const calculateGrid = () => {
-      const minSquareSize = 50; // Minimum size for each square in pixels
+      const minSquareSize = 65; // Minimum size for each square in pixels
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      const numCols = Math.floor(width / minSquareSize);
-      const numRows = Math.floor(height / minSquareSize);
+      // Calculate potential grid dimensions
+      let numCols = Math.floor(width / minSquareSize);
+      let numRows = Math.floor(height / minSquareSize);
+
+      // Adjust to ensure perfect division
+      const squareWidth = Math.floor(width / numCols);
+      const squareHeight = Math.floor(height / numRows);
+
+      // Recalculate dimensions to ensure squares are equal size
+      const squareSize = Math.min(squareWidth, squareHeight);
+      numCols = Math.floor(width / squareSize);
+      numRows = Math.floor(height / squareSize);
+
+      // Final adjustment to ensure complete coverage
+      const finalSquareSize = Math.min(
+        Math.floor(width / numCols),
+        Math.floor(height / numRows)
+      );
 
       return {
         numRows,
         numCols,
-        squareSize: Math.min(width / numCols, height / numRows),
+        squareSize: finalSquareSize,
       };
     };
 
     const grid = calculateGrid();
 
-    // Configuration
+    // Set canvas size to match grid
+    canvas.style.width = `${grid.numCols * grid.squareSize}px`;
+    canvas.style.height = `${grid.numRows * grid.squareSize}px`;
+    canvas.style.position = "absolute";
+    canvas.style.left = "50%";
+    canvas.style.top = "50%";
+    canvas.style.transform = "translate(-50%, -50%)";
+
+    // Rest of the code remains the same...
     const config = {
       numRows: grid.numRows,
       numCols: grid.numCols,
