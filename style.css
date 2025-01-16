@@ -26,6 +26,10 @@ h1 {
   gap: 10px;
 }
 
+.lucide {
+  min-width: 24px;
+}
+
 #start-test {
   display: flex;
   justify-content: center;
