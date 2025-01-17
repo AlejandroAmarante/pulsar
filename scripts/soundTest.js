@@ -64,7 +64,7 @@ async function testSingleFrequency(name, frequency) {
   return new Promise((resolve) => {
     const dialog = document.getElementById("sound-dialog");
     const overlay = document.getElementById("overlay");
-    dialog.style.display = "block";
+    dialog.style.display = "flex";
     overlay.style.display = "block";
 
     // Update dialog content for current frequency test
