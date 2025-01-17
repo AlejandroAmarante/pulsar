@@ -6,35 +6,46 @@ export async function testTouchTracking() {
 
     cleanupTouchTest();
 
-    // Calculate grid dimensions based on screen size
+    // Calculate grid dimensions based on screen size with min/max constraints
     const calculateGrid = () => {
-      const minSquareSize = 60; // Minimum size for each square in pixels
+      const minSquareSize = 50; // Minimum size for each square in pixels
+      const maxSquareSize = 60; // Maximum size for each square in pixels
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      // Calculate potential grid dimensions
-      let numCols = Math.floor(width / minSquareSize);
-      let numRows = Math.floor(height / minSquareSize);
+      // Try different square sizes to find the most even fit
+      let bestFit = {
+        squareSize: minSquareSize,
+        numRows: 0,
+        numCols: 0,
+        remainder: Infinity, // Combined remainder space
+      };
 
-      // Adjust to ensure perfect division
-      const squareWidth = Math.floor(width / numCols);
-      const squareHeight = Math.floor(height / numRows);
+      // Test sizes from min to max in 5px increments
+      for (let size = minSquareSize; size <= maxSquareSize; size += 1) {
+        const cols = Math.floor(width / size);
+        const rows = Math.floor(height / size);
 
-      // Recalculate dimensions to ensure squares are equal size
-      const squareSize = Math.min(squareWidth, squareHeight);
-      numCols = Math.floor(width / squareSize);
-      numRows = Math.floor(height / squareSize);
+        // Calculate remaining space
+        const remainderWidth = width - cols * size;
+        const remainderHeight = height - rows * size;
+        const totalRemainder = remainderWidth + remainderHeight;
 
-      // Final adjustment to ensure complete coverage
-      const finalSquareSize = Math.min(
-        Math.floor(width / numCols),
-        Math.floor(height / numRows)
-      );
+        // Update best fit if this size creates less remainder space
+        if (cols > 0 && rows > 0 && totalRemainder < bestFit.remainder) {
+          bestFit = {
+            squareSize: size,
+            numCols: cols,
+            numRows: rows,
+            remainder: totalRemainder,
+          };
+        }
+      }
 
       return {
-        numRows,
-        numCols,
-        squareSize: finalSquareSize,
+        numRows: bestFit.numRows,
+        numCols: bestFit.numCols,
+        squareSize: bestFit.squareSize,
       };
     };
 
@@ -48,7 +59,6 @@ export async function testTouchTracking() {
     canvas.style.top = "50%";
     canvas.style.transform = "translate(-50%, -50%)";
 
-    // Rest of the code remains the same...
     const config = {
       numRows: grid.numRows,
       numCols: grid.numCols,

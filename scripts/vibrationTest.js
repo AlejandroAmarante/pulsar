@@ -1,6 +1,3 @@
-// Vibration Test Setup
-let vibrationTestResult = null;
-
 // Vibrate the phone with a given pattern
 function vibrateTest(pattern) {
   if (navigator.vibrate) {

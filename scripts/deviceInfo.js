@@ -8,6 +8,25 @@ export async function getDeviceInfo() {
     }`;
   }
 
+  // Get device memory
+  const deviceMemory = navigator.deviceMemory || "Unknown";
+
+  // Get device language
+  const language = navigator.language || "Unknown";
+
+  // Get storage information
+  let availableStorage = "Unknown";
+  if (navigator.storage && navigator.storage.estimate) {
+    const storage = await navigator.storage.estimate();
+    availableStorage = `${(
+      (storage.quota - storage.usage) /
+      (1024 * 1024 * 1024)
+    ).toFixed(2)} GB`;
+  }
+
+  // Check if touch is supported
+  const touchSupport = "ontouchstart" in window ? "Yes" : "No";
+
   const info = {
     Browser: { value: navigator.userAgent, icon: "chrome" },
     "Screen Resolution": {
@@ -42,6 +61,8 @@ export async function getDeviceInfo() {
       icon: "signal",
     },
     Battery: { value: batteryInfo, icon: "battery-full" },
+    "Device Memory": { value: `${deviceMemory} GB`, icon: "memory-stick" },
+    "Touch Support": { value: touchSupport, icon: "fingerprint" },
   };
 
   const infoDiv = document.getElementById("device-info");
@@ -51,11 +72,11 @@ export async function getDeviceInfo() {
     const row = document.createElement("div");
     row.className = "device-info-row";
     row.innerHTML = `
-          <i data-lucide="${icon}" class="icon"></i>
-          <div>
-            <span class="label">${key}:</span> ${value}
-          </div>
-        `;
+      <i data-lucide="${icon}" class="icon"></i>
+      <div>
+        <span class="label">${key}:</span> ${value}
+      </div>
+    `;
     infoDiv.appendChild(row);
   }
 
