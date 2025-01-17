@@ -11,9 +11,6 @@ export async function getDeviceInfo() {
   // Get device memory
   const deviceMemory = navigator.deviceMemory || "Unknown";
 
-  // Get device language
-  const language = navigator.language || "Unknown";
-
   // Get storage information
   let availableStorage = "Unknown";
   if (navigator.storage && navigator.storage.estimate) {
@@ -27,8 +24,19 @@ export async function getDeviceInfo() {
   // Check if touch is supported
   const touchSupport = "ontouchstart" in window ? "Yes" : "No";
 
+  const getBrowserName = () => {
+    const ua = navigator.userAgent;
+    if (/Chrome/i.test(ua) && !/Edge|Opera/i.test(ua)) return "Chrome";
+    if (/Firefox/i.test(ua)) return "Firefox";
+    if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) return "Safari";
+    if (/Edge/i.test(ua)) return "Edge";
+    if (/Opera|OPR/i.test(ua)) return "Opera";
+    if (/Trident/i.test(ua)) return "Internet Explorer";
+    return "Unknown";
+  };
+
   const info = {
-    Browser: { value: navigator.userAgent, icon: "chrome" },
+    Browser: { value: getBrowserName(), icon: "chrome" },
     "Screen Resolution": {
       value: `${window.screen.width}x${window.screen.height}`,
       icon: "monitor",
