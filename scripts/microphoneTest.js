@@ -14,7 +14,7 @@ export async function testMicrophone() {
     const reRecordButton = document.getElementById("re-record"); // New button for re-record
     const timer = document.getElementById("mic-timer");
 
-    dialog.style.display = "block";
+    dialog.style.display = "flex";
     overlay.style.display = "block";
 
     let countdown;
