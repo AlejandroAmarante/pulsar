@@ -12,6 +12,7 @@ import {
   testMediumVibration,
   testLongVibration,
 } from "./vibrationTest.js";
+import { testCameraPhoto } from "./frontCameraTest.js";
 
 async function runTests() {
   const tests = [
@@ -34,6 +35,7 @@ async function runTests() {
             details: "Vibration API not supported.",
           }),
         ]),
+    testCameraPhoto,
     testTouchTracking,
     testGeolocation,
     testLowFrequency, // Separate test for low frequency
