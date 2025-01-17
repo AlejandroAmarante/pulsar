@@ -21,7 +21,7 @@ export async function testTouchTracking() {
         remainder: Infinity, // Combined remainder space
       };
 
-      // Test sizes from min to max in 5px increments
+      // Test sizes from min to max in 1px increments
       for (let size = minSquareSize; size <= maxSquareSize; size += 1) {
         const cols = Math.floor(width / size);
         const rows = Math.floor(height / size);
@@ -52,8 +52,10 @@ export async function testTouchTracking() {
     const grid = calculateGrid();
 
     // Set canvas size to match grid
-    canvas.style.width = `${grid.numCols * grid.squareSize}px`;
-    canvas.style.height = `${grid.numRows * grid.squareSize}px`;
+    // canvas.style.width = `${grid.numCols * grid.squareSize}px`;
+    // canvas.style.height = `${grid.numRows * grid.squareSize}px`;
+    canvas.style.width = `100%`;
+    canvas.style.height = `100%`;
     canvas.style.position = "absolute";
     canvas.style.left = "50%";
     canvas.style.top = "50%";
