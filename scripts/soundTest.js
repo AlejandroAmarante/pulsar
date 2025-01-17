@@ -94,7 +94,7 @@ async function testSingleFrequency(name, frequency) {
     });
 
     function handleResponse(heard) {
-      dialog.style.display = "flex";
+      dialog.style.display = "none";
       overlay.style.display = "none";
       resolve({
         name: name,
