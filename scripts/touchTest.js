@@ -8,8 +8,8 @@ export async function testTouchTracking() {
 
     // Calculate grid dimensions based on screen size with min/max constraints
     const calculateGrid = () => {
-      const minSquareSize = 50; // Minimum size for each square in pixels
-      const maxSquareSize = 60; // Maximum size for each square in pixels
+      const minSquareSize = 60; // Minimum size for each square in pixels
+      const maxSquareSize = 80; // Maximum size for each square in pixels
       const width = window.innerWidth;
       const height = window.innerHeight;
 
