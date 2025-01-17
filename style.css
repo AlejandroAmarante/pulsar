@@ -20,7 +20,8 @@ body {
 
 h1,
 h2,
-h3 {
+h3,
+p {
   margin: 0px;
   padding: 0px;
 }
@@ -202,6 +203,9 @@ button:disabled {
   z-index: 1000;
   width: 90%;
   max-width: 400px;
+  justify-content: center;
+  gap: 10px;
+  flex-direction: column;
 }
 
 .dialog-fullscreen {
@@ -243,6 +247,7 @@ button:disabled {
 .dialog-buttons {
   display: flex;
   gap: 10px;
+  width: 100%;
 }
 
 .dialog-buttons button {
