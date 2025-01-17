@@ -13,49 +13,58 @@ export async function testTouchTracking() {
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      // Try different square sizes to find the most even fit
       let bestFit = {
         squareSize: minSquareSize,
         numRows: 0,
         numCols: 0,
-        remainder: Infinity, // Combined remainder space
+        coverage: 0, // Track how much of the screen is covered
       };
 
-      // Test sizes from min to max in 1px increments
-      for (let size = minSquareSize; size <= maxSquareSize; size += 1) {
+      // Test sizes from max to min in 0.5px decrements for finer control
+      for (let size = maxSquareSize; size >= minSquareSize; size -= 0.5) {
         const cols = Math.floor(width / size);
         const rows = Math.floor(height / size);
 
-        // Calculate remaining space
-        const remainderWidth = width - cols * size;
-        const remainderHeight = height - rows * size;
-        const totalRemainder = remainderWidth + remainderHeight;
+        // Calculate actual coverage of screen
+        const coveredWidth = cols * size;
+        const coveredHeight = rows * size;
+        const totalArea = width * height;
+        const coveredArea = coveredWidth * coveredHeight;
+        const coverage = coveredArea / totalArea;
 
-        // Update best fit if this size creates less remainder space
-        if (cols > 0 && rows > 0 && totalRemainder < bestFit.remainder) {
+        // Update best fit if this size creates better coverage
+        if (cols > 0 && rows > 0 && coverage > bestFit.coverage) {
           bestFit = {
             squareSize: size,
             numCols: cols,
             numRows: rows,
-            remainder: totalRemainder,
+            coverage: coverage,
           };
         }
+
+        // If we find a solution with >99% coverage, we can stop
+        if (coverage > 0.99) {
+          break;
+        }
       }
+
+      // Calculate the actual dimensions to center the grid
+      const totalWidth = bestFit.numCols * bestFit.squareSize;
+      const totalHeight = bestFit.numRows * bestFit.squareSize;
 
       return {
         numRows: bestFit.numRows,
         numCols: bestFit.numCols,
         squareSize: bestFit.squareSize,
+        totalWidth,
+        totalHeight,
       };
     };
 
+    // Update canvas sizing code
     const grid = calculateGrid();
-
-    // Set canvas size to match grid
-    // canvas.style.width = `${grid.numCols * grid.squareSize}px`;
-    // canvas.style.height = `${grid.numRows * grid.squareSize}px`;
-    canvas.style.width = `100%`;
-    canvas.style.height = `100%`;
+    canvas.style.width = `${grid.totalWidth}px`;
+    canvas.style.height = `${grid.totalHeight}px`;
     canvas.style.position = "absolute";
     canvas.style.left = "50%";
     canvas.style.top = "50%";
