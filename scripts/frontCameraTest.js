@@ -1,77 +1,97 @@
-// Camera Test Setup
-let cameraTestResult = null;
-
-// Test front camera photo capture
+// Camera Test with Fullscreen Preview
 export async function testCameraPhoto() {
   return new Promise((resolve) => {
     const dialog = document.getElementById("camera-dialog");
+    const fullscreenDialog = document.getElementById("photo-fullscreen-dialog");
+    const photoPreview = document.getElementById("photo-preview");
+    const controlsContainer = document.getElementById("photo-controls");
+    const helpText = document.getElementById("help-text");
     const overlay = document.getElementById("overlay");
-    dialog.style.display = "flex";
+    let controlsVisible = true;
     overlay.style.display = "block";
 
-    // Update dialog content
+    dialog.style.display = "flex";
+    fullscreenDialog.style.display = "none";
+
+    // Update initial dialog content
     const title = dialog.querySelector("h3");
     const description = dialog.querySelector("p");
     title.textContent = "Camera Test";
-    description.textContent =
-      "Please take a photo using your camera. Were you able to capture the photo?";
+    description.textContent = "Please take a photo using your camera.";
 
-    const takePhotoButton = document.getElementById("take-photo");
-    const yesButton = document.getElementById("photo-yes");
-    const noButton = document.getElementById("photo-no");
+    function toggleControls() {
+      controlsVisible = !controlsVisible;
+      controlsContainer.style.opacity = controlsVisible ? "1" : "0";
+      controlsContainer.style.transform = controlsVisible
+        ? "translateY(0)"
+        : "translateY(100%)";
+      helpText.style.opacity = controlsVisible ? "1" : "0";
+    }
 
-    // Disable Yes/No buttons initially
-    yesButton.disabled = true;
-    noButton.disabled = true;
-
-    // Remove existing event listeners
-    const newTakePhotoButton = takePhotoButton.cloneNode(true);
-    takePhotoButton.parentNode.replaceChild(
-      newTakePhotoButton,
-      takePhotoButton
-    );
-
-    // Handle photo capture
-    newTakePhotoButton.addEventListener("click", async () => {
-      try {
-        // Create file input element
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.capture = "user"; // Specifically request front camera
-
-        // Trigger file selection/camera
-        input.click();
-
-        // Enable Yes/No buttons after photo attempt
-        yesButton.disabled = false;
-        noButton.disabled = false;
-
-        // Handle file selection
-        input.onchange = (event) => {
-          const file = event.target.files[0];
-          if (file) {
-            // Optional: you could add preview functionality here
-            console.log("Photo captured:", file.name);
-          }
-        };
-      } catch (error) {
-        console.error("Camera error:", error);
-        handleResponse(false);
+    // Setup fullscreen dialog interactions
+    fullscreenDialog.addEventListener("click", (e) => {
+      // Only toggle if clicking the dialog background or image
+      if (e.target === fullscreenDialog || e.target === photoPreview) {
+        toggleControls();
       }
     });
 
-    function handleResponse(success) {
-      dialog.style.display = "none";
-      overlay.style.display = "none";
+    // Handle photo capture
+    const takePhotoButton = document.getElementById("take-photo");
+    takePhotoButton.onclick = () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "user";
+
+      input.onchange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            photoPreview.src = e.target.result;
+            dialog.style.display = "none";
+            overlay.style.display = "none";
+            fullscreenDialog.style.display = "flex";
+            controlsVisible = true;
+            controlsContainer.style.opacity = "1";
+            controlsContainer.style.transform = "translateY(0)";
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      input.click();
+    };
+
+    // Handle retake
+    const retakeButton = document.getElementById("retake-photo");
+    retakeButton.onclick = () => {
+      fullscreenDialog.style.display = "none";
+      dialog.style.display = "flex";
+      photoPreview.src = "";
+    };
+
+    // Handle pass/fail
+    const passButton = document.getElementById("pass-photo");
+    const failButton = document.getElementById("fail-photo");
+
+    passButton.onclick = () => {
+      fullscreenDialog.style.display = "none";
       resolve({
         name: "Camera Photo Test",
-        success: success,
-        details: `Photo capture: ${success ? "Successful" : "Failed"}`,
+        success: true,
+        details: "Photo test passed",
       });
-    }
+    };
 
-    yesButton.onclick = () => handleResponse(true);
-    noButton.onclick = () => handleResponse(false);
+    failButton.onclick = () => {
+      fullscreenDialog.style.display = "none";
+      resolve({
+        name: "Camera Photo Test",
+        success: false,
+        details: "Photo test failed",
+      });
+    };
   });
 }

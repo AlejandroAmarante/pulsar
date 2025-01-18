@@ -52,6 +52,10 @@
             </div>
             <div class="result">
                 <div class="status pending"></div>
+                <span>Front Camera</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
                 <span>Touch Tracking</span>
             </div>
             <div class="result">
@@ -132,14 +136,20 @@
     <div id="camera-dialog" class="dialog">
         <h3>Camera Test</h3>
         <p></p>
-
-        <button id="take-photo">Take Photo</button>
-        <div class="dialog-buttons">
-            <button id="photo-no" class="button-no"><i data-lucide="x" class="button-icon"></i></button>
-            <button id="photo-yes" class="button-yes"><i data-lucide="check" class="button-icon"></i></button>
-            </di>
+        <div class="buttons">
+            <button id="take-photo">Take Photo</button>
         </div>
     </div>
+
+    <dialog id="photo-fullscreen-dialog" class="dialog-fullscreen">
+        <p id="help-text">Tap the photo to hide/show buttons</p>
+        <img id="photo-preview" alt="Captured photo">
+        <div id="photo-controls">
+            <button id="retake-photo">Retry</button>
+            <button id="pass-photo">Pass</button>
+            <button id="fail-photo">Fail</button>
+        </div>
+    </dialog>
 
     <script type="module" src="./scripts/main.js"></script>
 
