@@ -80,10 +80,10 @@ export async function testCameraPhoto() {
         justify-content: center;
       }
 
-      .capture-button i {
-        width: 32px;
-        height: 32px;
-        color: #000;
+      .capture-button svg {
+        width: 38px;
+        height: 38px;
+        color: black;
       }
 
       .preview-controls {
@@ -112,8 +112,8 @@ export async function testCameraPhoto() {
       }
 
       .action-button {
-        width: 48px;
-        height: 48px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         background: rgba(255,255,255,0.2);
         backdrop-filter: blur(4px);
@@ -125,9 +125,9 @@ export async function testCameraPhoto() {
         justify-content: center;
       }
 
-      .action-button i {
-        width: 24px;
-        height: 24px;
+      .action-button svg {
+        width: 38px;
+        height: 38px;
         color: white;
       }
 
