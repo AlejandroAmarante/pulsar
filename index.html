@@ -13,6 +13,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
@@ -142,7 +143,14 @@
     </div>
 
     <script type="module" src="./scripts/main.js"></script>
-
+    <script>
+        // Check if service workers are supported
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./scripts/service-worker.js');
+            });
+        }
+    </script>
 </body>
 
 </html>
