@@ -1,7 +1,7 @@
 {
   "name": "Pulsar",
   "short_name": "Pulsar",
-  "start_url": "https://alejandroamarante.github.io/pulsar/",
+  "start_url": "/pulsar/",
   "icons": [
     {
       "src": "icons/manifest-icon-192.maskable.png",
