@@ -42,7 +42,7 @@ export async function testCameraPhoto() {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
-      input.capture = "camera";
+      input.capture = "user";
 
       input.onchange = (event) => {
         const file = event.target.files[0];
