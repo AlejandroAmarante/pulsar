@@ -1,5 +1,5 @@
 // camera-test.js
-export async function testFrontCamera() {
+export async function testRearCamera() {
   return new Promise((resolve) => {
     // Initialize Lucide icons if needed
     if (typeof lucide !== "undefined") {
@@ -36,7 +36,7 @@ export async function testFrontCamera() {
 
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: "user",
+            facingMode: "environment",
             width: { ideal: 1280 },
             height: { ideal: 720 },
           },
@@ -82,6 +82,7 @@ export async function testFrontCamera() {
       photoPreview.classList.remove("hidden");
       cameraControls.classList.add("hidden");
       previewControls.classList.remove("hidden");
+
       stopCamera();
     }
 
@@ -94,7 +95,7 @@ export async function testFrontCamera() {
       stopCamera();
       cameraDialog.style.display = "none";
       resolve({
-        name: "Front Camera Photo Test",
+        name: "Rear Camera Photo Test",
         success: true,
         details: "Photo accepted",
         photoData: photoPreview.src,
@@ -105,7 +106,7 @@ export async function testFrontCamera() {
       stopCamera();
       cameraDialog.style.display = "none";
       resolve({
-        name: "Front Camera Photo Test",
+        name: "Rear Camera Photo Test",
         success: false,
         details: "Photo rejected",
       });

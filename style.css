@@ -26,6 +26,23 @@ p {
   padding: 0px;
 }
 
+#timer-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background-color: #f0f0f0;
+  z-index: 99999;
+}
+
+#timer-bar {
+  width: 0%;
+  height: 100%;
+  background-color: #8223d2;
+  transition: width 0.1s linear;
+}
+
 #logo-text {
   display: flex;
   flex-direction: column;
@@ -228,7 +245,6 @@ button:disabled {
 }
 
 .dialog {
-  display: none;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -246,7 +262,6 @@ button:disabled {
 }
 
 .dialog-fullscreen {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -328,4 +343,130 @@ button:disabled {
   border-radius: 50%;
   display: inline-block;
   margin-right: 8px;
+}
+
+#camera-dialog {
+  display: none;
+}
+
+#touch-dialog {
+  display: none;
+}
+
+#mic-dialog {
+  display: none;
+}
+
+#sound-dialog {
+  display: none;
+}
+
+#vibration-dialog {
+  display: none;
+}
+
+.dialog-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  z-index: 9999;
+}
+
+#camera-preview,
+.photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.capture-button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.capture-button svg {
+  width: 38px;
+  height: 38px;
+  color: black;
+}
+
+.preview-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.help-text {
+  text-align: center;
+  color: white;
+  margin: 0 0 1rem 0;
+  font-size: 14px;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.action-button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-button svg {
+  width: 38px;
+  height: 38px;
+  color: white;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.controls-hidden {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.help-text-hidden {
+  opacity: 0;
 }

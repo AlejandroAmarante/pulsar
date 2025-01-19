@@ -12,45 +12,29 @@ import {
   testMediumVibration,
   testLongVibration,
 } from "./vibrationTest.js";
-import { testCameraPhoto } from "./frontCameraTest.js";
+import { testFrontCamera } from "./frontCameraTest.js";
+import { testRearCamera } from "./rearCameraTest.js";
 
 async function runTests() {
   const tests = [
-    ...(navigator.vibrate
-      ? [testShortVibration, testMediumVibration, testLongVibration]
-      : [
-          async () => ({
-            name: "Short Vibration Test",
-            success: false,
-            details: "Vibration API not supported.",
-          }),
-          async () => ({
-            name: "Medium Vibration Test",
-            success: false,
-            details: "Vibration API not supported.",
-          }),
-          async () => ({
-            name: "Long Vibration Test",
-            success: false,
-            details: "Vibration API not supported.",
-          }),
-        ]),
-    testCameraPhoto,
+    testShortVibration,
+    testMediumVibration,
+    testLongVibration,
+    testFrontCamera,
+    testRearCamera,
     testTouchTracking,
     testGeolocation,
-    testLowFrequency, // Separate test for low frequency
-    testMidFrequency, // Separate test for mid frequency
-    testHighFrequency, // Separate test for high frequency
+    testLowFrequency,
+    testMidFrequency,
+    testHighFrequency,
     testMicrophone,
   ];
 
   let startTestButton = document.getElementById("start-test");
   startTestButton.disabled = true;
-
   let startTestButtonText =
     startTestButton.getElementsByClassName("button-text")[0];
   startTestButtonText.textContent = "Running Tests...";
-
   let buttonLoading =
     startTestButton.getElementsByClassName("button-loading")[0];
   buttonLoading.style.display = "block";
@@ -59,16 +43,74 @@ async function runTests() {
   const progress = document.getElementById("progress");
   const testResults = document.getElementById("test-results");
   const statusDots = document.querySelectorAll(".status");
+  const duration = 30; // Timer duration in seconds
 
   for (let i = 0; i < tests.length; i++) {
-    const result = await tests[i]();
-    results.push(result);
-    let nextTestIndex = i + 1 < tests.length ? i + 1 : i; // Avoid overflow by using the last test if it's out of bounds
+    // Create a promise that resolves with the test result or rejects after timeout
+    const testWithTimeout = async () => {
+      let timeoutId;
+      // Cleanup any previous tests
+      const cameraDialog = document.getElementById("camera-dialog");
+      cameraDialog.style.display = "none";
+      const touchDialog = document.getElementById("touch-dialog");
+      touchDialog.style.display = "none";
 
+      try {
+        const result = await Promise.race([
+          tests[i](),
+          new Promise((_, reject) => {
+            timeoutId = setTimeout(() => {
+              reject(new Error("Test timed out"));
+            }, duration * 1000);
+          }),
+        ]);
+
+        clearTimeout(timeoutId);
+        return result;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        // Get the test name from the function or generate a default
+        const testName = tests[i].name || `Test ${i + 1}`;
+        return {
+          name: testName,
+          success: false,
+          details:
+            error.message === "Test timed out"
+              ? `Test timed out after ${duration} seconds`
+              : error.message,
+        };
+      }
+    };
+
+    const result = await testWithTimeout();
+    results.push(result);
+
+    let nextTestIndex = i + 1 < tests.length ? i + 1 : i;
     startTestButtonText.textContent = `Testing ${tests[nextTestIndex].name
       .replace("test", " ")
       .replace(/([A-Z])/g, " $1")
       .trim()}`;
+
+    // Reference to the progress bar
+    const progressBar = document.getElementById("timer-bar");
+    // Update progress bar width
+    let startTime = null;
+
+    function updateProgressBar(timestamp) {
+      if (!startTime) startTime = timestamp;
+      // Calculate elapsed time
+      const elapsed = (timestamp - startTime) / 1000;
+      // Calculate progress percentage
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      progressBar.style.width = `${progress}%`;
+      // Continue updating if the timer is not complete
+      if (elapsed < duration) {
+        requestAnimationFrame(updateProgressBar);
+      }
+    }
+
+    // Start the progress bar animation
+    requestAnimationFrame(updateProgressBar);
 
     // Update progress bar
     progress.style.width = `${((i + 1) / tests.length) * 100}%`;
@@ -96,7 +138,6 @@ async function runTests() {
 
   startTestButton.disabled = false;
   startTestButtonText.textContent = "Start All Tests";
-
   buttonLoading.style.display = "none";
 
   window.scrollTo({

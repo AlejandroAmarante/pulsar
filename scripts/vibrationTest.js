@@ -40,6 +40,15 @@ export async function testLongVibration() {
 // Test a single vibration pattern
 async function testSingleVibration(name, pattern) {
   return new Promise((resolve) => {
+    if (!navigator.vibrate) {
+      resolve({
+        name: name,
+        success: false,
+        details: "Vibration API not supported.",
+      });
+      return;
+    }
+
     const dialog = document.getElementById("vibration-dialog");
     const overlay = document.getElementById("overlay");
     dialog.style.display = "flex";

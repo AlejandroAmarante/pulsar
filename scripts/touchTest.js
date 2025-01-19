@@ -1,6 +1,6 @@
 export async function testTouchTracking() {
   return new Promise((resolve) => {
-    const dialog = document.getElementById("touch-dialog");
+    const touchDialog = document.getElementById("touch-dialog");
     const overlay = document.getElementById("overlay");
     const canvas = document.getElementById("touch-canvas");
 
@@ -73,7 +73,6 @@ export async function testTouchTracking() {
     const config = {
       numRows: grid.numRows,
       numCols: grid.numCols,
-      timeoutSeconds: 30,
       minimumCoverage: 1.0,
       squareSize: grid.squareSize,
     };
@@ -83,7 +82,7 @@ export async function testTouchTracking() {
     const instructions = document.createElement("div");
     setupUI(progressIndicator, instructions, canvas);
 
-    dialog.style.display = "block";
+    touchDialog.style.display = "block";
     overlay.style.display = "block";
 
     const quadrants = [];
@@ -171,7 +170,7 @@ export async function testTouchTracking() {
     function cleanup() {
       clearTimeout(timeoutId);
       cleanupTouchTest();
-      dialog.style.display = "none";
+      touchDialog.style.display = "none";
       overlay.style.display = "none";
     }
 
@@ -183,20 +182,6 @@ export async function testTouchTracking() {
     canvas.addEventListener("touchmove", handleTouch, { passive: false });
     canvas.addEventListener("mousemove", handleTouch);
     canvas._touchHandler = handleTouch;
-
-    // Timeout
-    timeoutId = setTimeout(() => {
-      const coverage = (
-        (touchedQuadrants.size / quadrants.length) *
-        100
-      ).toFixed(1);
-      cleanup();
-      resolve({
-        name: "Touch Tracking",
-        success: false,
-        details: `Touch tracking timed out with ${coverage}% coverage`,
-      });
-    }, config.timeoutSeconds * 1000);
   });
 }
 
@@ -246,10 +231,9 @@ function setupUI(progressIndicator, instructions, canvas) {
 
 function updateInstructions(progress, instructions) {
   const messages = {
-    20: "Draw your finger across the screen to test for dead zones",
-    50: "Keep going! Make sure to cover all areas",
-    85: "Almost there! Check for any missed spots",
-    100: "Great coverage! Just a few more spots to check",
+    30: "Draw your finger across the screen to test for dead zones",
+    60: "Keep going! Make sure to cover all areas",
+    90: "Almost there! Check for any missed spots",
   };
 
   for (const [threshold, message] of Object.entries(messages)) {

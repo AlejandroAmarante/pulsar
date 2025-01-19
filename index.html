@@ -57,6 +57,10 @@
             </div>
             <div class="result">
                 <div class="status pending"></div>
+                <span>Rear Camera</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
                 <span>Touch Tracking</span>
             </div>
             <div class="result">
@@ -91,14 +95,16 @@
 
     <div class="dialog-fullscreen" id="touch-dialog">
         <div class="touch-canvas" id="touch-canvas">
-            <h3>Touch Test</h3>
-            <p class="touch-instructions">Draw anywhere on this screen to test your screen for dead zones.
-                Touch points will be visualized as blue dots.</p>
+            <p class="touch-instructions"></p>
         </div>
     </div>
 
     <div class="overlay" id="overlay">
         <img id="loading" src="./imgs/ring-resize.svg" alt="Loading...">
+    </div>
+
+    <div id="timer-container">
+        <div id="timer-bar"></div>
     </div>
 
     <div class="dialog" id="vibration-dialog">
@@ -134,12 +140,28 @@
         </div>
     </div>
 
-    <div id="camera-dialog" class="dialog">
-        <h3>Camera Test</h3>
-        <p></p>
-        <div class="buttons">
-            <button id="take-photo">Take Photo</button>
+    <div id="camera-dialog" class="dialog-fullscreen">
+        <video id="camera-preview" autoplay playsinline></video>
+        <div id="camera-controls" class="camera-controls">
+            <button id="capture-button" class="capture-button" aria-label="Take photo">
+                <i data-lucide="camera"></i>
+            </button>
         </div>
+        <div id="preview-controls" class="preview-controls hidden">
+            <p id="help-text" class="help-text">Tap the photo to hide/show buttons</p>
+            <div id="button-container" class="button-container">
+                <button id="retake-button" class="action-button" aria-label="Retake photo">
+                    <i data-lucide="rotate-ccw"></i>
+                </button>
+                <button id="accept-button" class="action-button" aria-label="Accept photo">
+                    <i data-lucide="check"></i>
+                </button>
+                <button id="reject-button" class="action-button" aria-label="Reject photo">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </div>
+        <img id="photo-preview" class="photo-preview hidden" />
     </div>
 
     <script type="module" src="./scripts/main.js"></script>
