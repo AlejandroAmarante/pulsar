@@ -1,11 +1,6 @@
 // camera-test.js
 export async function testFrontCamera() {
   return new Promise((resolve) => {
-    // Initialize Lucide icons if needed
-    if (typeof lucide !== "undefined") {
-      lucide.createIcons();
-    }
-
     // Get DOM elements after ensuring they exist
     const cameraDialog = document.getElementById("camera-dialog");
     const video = document.getElementById("camera-preview");
@@ -67,6 +62,7 @@ export async function testFrontCamera() {
       }
       if (video.srcObject) {
         video.srcObject = null;
+        video.load(); // Reset the video element
       }
     }
 
@@ -78,6 +74,7 @@ export async function testFrontCamera() {
       ctx.drawImage(video, 0, 0);
 
       photoPreview.src = canvas.toDataURL("image/jpeg", 1);
+      console.log("Captured image URL:", photoPreview.src);
       video.classList.add("hidden");
       photoPreview.classList.remove("hidden");
       cameraControls.classList.add("hidden");
@@ -92,6 +89,10 @@ export async function testFrontCamera() {
 
     acceptButton.addEventListener("click", () => {
       stopCamera();
+      //remove event listeners
+      captureButton.removeEventListener("click", takePhoto);
+      photoPreview.removeEventListener("click", toggleControls);
+      retakeButton.removeEventListener("click", startCamera);
       cameraDialog.style.display = "none";
       resolve({
         name: "Front Camera Photo Test",
@@ -103,6 +104,9 @@ export async function testFrontCamera() {
 
     rejectButton.addEventListener("click", () => {
       stopCamera();
+      captureButton.removeEventListener("click", takePhoto);
+      photoPreview.removeEventListener("click", toggleControls);
+      retakeButton.removeEventListener("click", startCamera);
       cameraDialog.style.display = "none";
       resolve({
         name: "Front Camera Photo Test",
