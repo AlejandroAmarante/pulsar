@@ -97,6 +97,7 @@ async function runTests() {
     let startTime = null;
 
     function updateProgressBar(timestamp) {
+      progressBar.style.display = "block";
       if (!startTime) startTime = timestamp;
       // Calculate elapsed time
       const elapsed = (timestamp - startTime) / 1000;
@@ -121,6 +122,8 @@ async function runTests() {
     }`;
   }
 
+  const progressBarContainer = document.getElementById("timer-container");
+  progressBarContainer.style.display = "none"; // Hide the progress bar
   // Display results
   document.getElementById("results-section").style.display = "block";
   testResults.innerHTML = results
