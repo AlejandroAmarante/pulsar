@@ -26,7 +26,11 @@ p {
   padding: 0px;
 }
 
-#timer-container {
+.greyed-out {
+  opacity: 0.5;
+}
+
+#timer-bar-container {
   position: fixed;
   top: 0;
   left: 0;

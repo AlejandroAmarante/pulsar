@@ -41,6 +41,10 @@
         <div id="tests">
             <div class="result">
                 <div class="status pending"></div>
+                <span>Touch Tracking</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
                 <span>Short Vibration</span>
             </div>
             <div class="result">
@@ -53,19 +57,11 @@
             </div>
             <div class="result">
                 <div class="status pending"></div>
-                <span>Front Camera</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Rear Camera</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Touch Tracking</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
                 <span>Geolocation</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Bluetooth</span>
             </div>
             <div class="result">
                 <div class="status pending"></div>
@@ -81,10 +77,17 @@
             </div>
             <div class="result">
                 <div class="status pending"></div>
+                <span>Front Camera</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
+                <span>Rear Camera</span>
+            </div>
+            <div class="result">
+                <div class="status pending"></div>
                 <span>Microphone Test</span>
             </div>
         </div>
-
     </div>
 
     <div id="results-section" class="card">
@@ -93,21 +96,21 @@
         <button id="restart-test">Run Tests Again</button>
     </div>
 
-    <div class="dialog-fullscreen" id="touch-dialog">
+    <div class="overlay" id="overlay">
+        <img id="loading" src="./imgs/ring-resize.svg" alt="Loading...">
+    </div>
+
+    <div id="timer-bar-container">
+        <div id="timer-bar"></div>
+    </div>
+
+    <div id="touch-dialog" class="dialog-fullscreen">
         <div class="touch-canvas" id="touch-canvas">
             <p class="touch-instructions"></p>
         </div>
     </div>
 
-    <div class="overlay" id="overlay">
-        <img id="loading" src="./imgs/ring-resize.svg" alt="Loading...">
-    </div>
-
-    <div id="timer-container">
-        <div id="timer-bar"></div>
-    </div>
-
-    <div class="dialog" id="vibration-dialog">
+    <div id="vibration-dialog" class="dialog">
         <h3>Vibration Test</h3>
         <p>The device will vibrate when you click the button below. Did you feel it?</p>
         <button id="vibrate-test">Vibrate</button>
@@ -117,7 +120,7 @@
         </div>
     </div>
 
-    <div class="dialog" id="sound-dialog">
+    <div id="sound-dialog" class="dialog">
         <h3>Sound Test</h3>
         <p>A sound will play when you click the button below. Did you hear it?</p>
         <button id="play-sound">Play Sound</button>
@@ -127,7 +130,7 @@
         </div>
     </div>
 
-    <div class="dialog" id="mic-dialog">
+    <div id="mic-dialog" class="dialog">
         <h3>Microphone Test</h3>
         <p>We'll record 5 seconds of audio and play it back.</p>
         <canvas id="waveform" width="400" height="100" style="display: none;"></canvas>
