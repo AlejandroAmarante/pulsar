@@ -1,6 +1,5 @@
 // Sound Test Setup
 let audioContext;
-let soundTestResult = null;
 
 // Initialize the audio context
 function initAudio() {
@@ -65,7 +64,6 @@ async function testSingleFrequency(name, frequency) {
     const dialog = document.getElementById("sound-dialog");
     const overlay = document.getElementById("overlay");
     dialog.style.display = "flex";
-    overlay.style.display = "block";
 
     // Update dialog content for current frequency test
     const title = dialog.querySelector("h3");

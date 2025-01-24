@@ -118,6 +118,17 @@ button:disabled {
   display: none;
 }
 
+#start-test {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8px;
+}
+
+#redo-test {
+  display: none;
+}
+
 /* Logo Styles */
 #logo {
   display: flex;
@@ -138,6 +149,7 @@ button:disabled {
 
 #logo-text h1 {
   font-size: var(--font-size-large);
+  letter-spacing: 2px;
 }
 
 #logo-text p {
@@ -249,6 +261,13 @@ button:disabled {
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay img {
+  width: 96px;
+  height: 96px;
 }
 
 .dialog-buttons {

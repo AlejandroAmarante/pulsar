@@ -41,6 +41,12 @@ async function runTests() {
     startTestButton.getElementsByClassName("button-loading")[0];
   const testsCard = document.getElementById("tests-card");
   const testsContainer = document.getElementById("tests");
+  const redoTestButton = document.getElementById("redo-test");
+
+  redoTestButton.style.display = "none";
+
+  const overlay = document.getElementById("overlay");
+  overlay.style.display = "flex";
 
   // Update button state
   function updateButtonState(isRunning, testName = "") {
@@ -190,6 +196,7 @@ async function runTests() {
 
   // Reset button state
   updateButtonState(false);
+  redoTestButton.style.display = "block";
 
   window.scrollTo({
     top: document.body.scrollHeight,
@@ -198,17 +205,13 @@ async function runTests() {
 }
 
 function resetTests() {
-  // Reset global variables
-  audioContext = null;
-  mediaRecorder = null;
-  audioChunks = [];
-  audioBlob = null;
-  audioUrl = null;
-
   // Reset tests card
   const testsCard = document.getElementById("tests-card");
   const testsContainer = document.getElementById("tests");
   const progress = document.getElementById("progress");
+  const redoTestButton = document.getElementById("redo-test");
+
+  redoTestButton.style.display = "none";
 
   // Restore available tests view
   testsCard.querySelector("h2").textContent = "Available Tests";
@@ -241,9 +244,6 @@ function resetTests() {
     }
   });
 
-  // Reset overlay
-  document.getElementById("overlay").style.display = "none";
-
   // Reinitialize device information
   getDeviceInfo();
 }
@@ -255,10 +255,10 @@ document.getElementById("start-test").addEventListener("click", async () => {
   document.getElementById("start-test").disabled = false;
 });
 
-// document.getElementById("restart-test").addEventListener("click", async () => {
-//   resetTests();
-//   await runTests();
-// });
+document.getElementById("redo-test").addEventListener("click", async () => {
+  resetTests();
+  await runTests();
+});
 
 function initializeTests() {
   const testsContainer = document.getElementById("tests");

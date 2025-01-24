@@ -1,6 +1,5 @@
 export async function testGeolocation() {
   return new Promise((resolve) => {
-    overlay.style.display = "block";
     if ("geolocation" in navigator) {
       // Timeout to prevent the test from getting stuck indefinitely
       const timeoutId = setTimeout(() => {

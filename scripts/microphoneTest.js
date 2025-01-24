@@ -6,7 +6,6 @@ let audioUrl;
 export async function testMicrophone() {
   return new Promise((resolve) => {
     const dialog = document.getElementById("mic-dialog");
-    const overlay = document.getElementById("overlay");
     const startButton = document.getElementById("start-recording");
     const playButton = document.getElementById("play-recording");
     const yesButton = document.getElementById("mic-yes");
@@ -17,7 +16,6 @@ export async function testMicrophone() {
     const canvasCtx = canvas.getContext("2d");
 
     dialog.style.display = "flex";
-    overlay.style.display = "block";
 
     let countdown;
     let stream;

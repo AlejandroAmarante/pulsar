@@ -83,7 +83,6 @@ export async function testTouchTracking() {
     setupUI(progressIndicator, instructions, canvas);
 
     touchDialog.style.display = "block";
-    overlay.style.display = "block";
 
     const quadrants = [];
     let timeoutId = null;
