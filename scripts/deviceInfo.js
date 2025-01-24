@@ -82,7 +82,7 @@ export async function getDeviceInfo() {
 
   for (const [key, { value, icon }] of Object.entries(info)) {
     const row = document.createElement("div");
-    row.className = "device-info-row";
+    row.className = "list-item-row";
 
     // Add a "greyed-out" class if the value is "Unknown"
     const isUnknown = value === "Unknown";

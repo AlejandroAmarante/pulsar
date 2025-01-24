@@ -33,67 +33,16 @@
                 Tests</span></button>
     </div>
 
-    <div class="card">
+    <div id="tests-card" class="card">
         <h2>Available Tests</h2>
         <div class="progress-bar">
             <div class="progress" id="progress"></div>
         </div>
         <div id="tests">
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Touch Tracking</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Short Vibration</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Medium Vibration</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Long Vibration</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Geolocation</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Bluetooth</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Low Frequency Sound Test</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Mid Frequency Sound Test</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>High Frequency Sound Test</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Front Camera</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Rear Camera</span>
-            </div>
-            <div class="result">
-                <div class="status pending"></div>
-                <span>Microphone Test</span>
-            </div>
+            <!-- Test items will be dynamically populated -->
         </div>
-    </div>
-
-    <div id="results-section" class="card">
-        <h2>Test Results</h2>
-        <div id="test-results"></div>
-        <button id="restart-test">Run Tests Again</button>
+        <button id="start-test"><img class="button-loading" src="imgs/ring-resize.svg" alt="Loading..."> <span
+                class="button-text">Start All Tests</span></button>
     </div>
 
     <div class="overlay" id="overlay">

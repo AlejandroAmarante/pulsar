@@ -16,28 +16,31 @@ import {
 import { testFrontCamera } from "./frontCameraTest.js";
 import { testRearCamera } from "./rearCameraTest.js";
 
-async function runTests() {
-  const tests = [
-    testTouchTracking,
-    testShortVibration,
-    testMediumVibration,
-    testLongVibration,
-    testGeolocation,
-    testBluetooth,
-    testLowFrequency,
-    testMidFrequency,
-    testHighFrequency,
-    testFrontCamera,
-    testRearCamera,
-    testMicrophone,
-  ];
+// Define test configurations
+const testConfigurations = [
+  { name: "Touch Tracking", testFunction: testTouchTracking },
+  { name: "Short Vibration", testFunction: testShortVibration },
+  { name: "Medium Vibration", testFunction: testMediumVibration },
+  { name: "Long Vibration", testFunction: testLongVibration },
+  { name: "Geolocation", testFunction: testGeolocation },
+  { name: "Bluetooth", testFunction: testBluetooth },
+  { name: "Low Frequency Sound", testFunction: testLowFrequency },
+  { name: "Mid Frequency Sound", testFunction: testMidFrequency },
+  { name: "High Frequency Sound", testFunction: testHighFrequency },
+  { name: "Front Camera", testFunction: testFrontCamera },
+  { name: "Rear Camera", testFunction: testRearCamera },
+  { name: "Microphone", testFunction: testMicrophone },
+];
 
+async function runTests() {
   // Button elements
   const startTestButton = document.getElementById("start-test");
   const startTestButtonText =
     startTestButton.getElementsByClassName("button-text")[0];
   const buttonLoading =
     startTestButton.getElementsByClassName("button-loading")[0];
+  const testsCard = document.getElementById("tests-card");
+  const testsContainer = document.getElementById("tests");
 
   // Update button state
   function updateButtonState(isRunning, testName = "") {
@@ -89,17 +92,32 @@ async function runTests() {
   const progressTimer = createProgressBarTimer();
   let results = [];
   const progress = document.getElementById("progress");
-  const testResults = document.getElementById("test-results");
-  const statusDots = document.querySelectorAll(".status");
   const duration = 30;
 
-  for (let i = 0; i < tests.length; i++) {
+  // Dynamically create test status elements if not already present
+  if (testsContainer.children.length === 0) {
+    testConfigurations.forEach((test) => {
+      const resultElement = document.createElement("div");
+      resultElement.className = "list-item-row";
+      resultElement.innerHTML = `
+        <div class="status pending"></div>
+        <span>${test.name}</span>
+      `;
+      testsContainer.appendChild(resultElement);
+    });
+  }
+
+  const statusDots = document.querySelectorAll(".status");
+
+  // Change card heading and style during testing
+  testsCard.querySelector("h2").textContent = "Available Tests";
+  testsCard.classList.remove("test-results");
+
+  for (let i = 0; i < testConfigurations.length; i++) {
+    const { name, testFunction } = testConfigurations[i];
+
     // Update button text with current test name
-    const currentTestName = tests[i].name
-      .replace("test", "")
-      .replace(/([A-Z])/g, " $1")
-      .trim();
-    updateButtonState(true, currentTestName);
+    updateButtonState(true, name);
 
     // Cleanup dialogs
     const dialogs = [
@@ -116,12 +134,12 @@ async function runTests() {
     progressTimer.start();
 
     const result = await Promise.race([
-      tests[i](),
+      testFunction(),
       new Promise((_, reject) => {
         setTimeout(() => reject(new Error("Test timed out")), duration * 1000);
       }),
     ]).catch((error) => ({
-      name: tests[i].name || `Test ${i + 1}`,
+      name: name,
       success: false,
       details:
         error.message === "Test timed out"
@@ -135,7 +153,7 @@ async function runTests() {
     results.push(result);
 
     // Update progress and status
-    progress.style.width = `${((i + 1) / tests.length) * 100}%`;
+    progress.style.width = `${((i + 1) / testConfigurations.length) * 100}%`;
     statusDots[i].className = `status ${
       result.success ? "success" : "failure"
     }`;
@@ -153,16 +171,17 @@ async function runTests() {
     document.getElementById(dialog).style.display = "none";
   });
 
-  // Display final results
-  document.getElementById("results-section").style.display = "block";
-  testResults.innerHTML = results
+  // Transform the tests card into results view
+  testsCard.querySelector("h2").textContent = "Test Results";
+  testsCard.classList.add("test-results");
+  testsContainer.innerHTML = results
     .map(
       (r) => `
-      <div class="result">
+      <div class="list-item-row">
         <div class="status ${r.success ? "success" : "failure"}"></div>
         <div>
           <strong>${r.name}</strong><br>
-          ${r.details}
+          ${r.details || (r.success ? "Test Passed" : "Test Failed")}
         </div>
       </div>
     `
@@ -186,15 +205,29 @@ function resetTests() {
   audioBlob = null;
   audioUrl = null;
 
-  // Clear dynamically created DOM content
-  document.getElementById("device-info").innerHTML = "";
-  document.getElementById("results-section").style.display = "none";
-  document.getElementById("progress").style.width = "0%";
+  // Reset tests card
+  const testsCard = document.getElementById("tests-card");
+  const testsContainer = document.getElementById("tests");
+  const progress = document.getElementById("progress");
 
-  // Reset all status dots to pending
-  document.querySelectorAll(".status").forEach((dot) => {
-    dot.className = "status pending";
+  // Restore available tests view
+  testsCard.querySelector("h2").textContent = "Available Tests";
+  testsCard.classList.remove("test-results");
+
+  // Recreate test status elements
+  testsContainer.innerHTML = "";
+  testConfigurations.forEach((test) => {
+    const resultElement = document.createElement("div");
+    resultElement.className = "list-item-row";
+    resultElement.innerHTML = `
+      <div class="status pending"></div>
+      <span>${test.name}</span>
+    `;
+    testsContainer.appendChild(resultElement);
   });
+
+  // Clear progress
+  progress.style.width = "0%";
 
   // Properly cleanup touch test
   cleanupTouchTest();
@@ -215,8 +248,6 @@ function resetTests() {
   getDeviceInfo();
 }
 
-getDeviceInfo();
-
 // Event Listeners
 document.getElementById("start-test").addEventListener("click", async () => {
   document.getElementById("start-test").disabled = true;
@@ -224,12 +255,31 @@ document.getElementById("start-test").addEventListener("click", async () => {
   document.getElementById("start-test").disabled = false;
 });
 
-document.getElementById("restart-test").addEventListener("click", async () => {
-  document.getElementById("results-section").style.display = "none";
-  document.getElementById("progress").style.width = "0%";
-  document
-    .querySelectorAll(".status")
-    .forEach((dot) => (dot.className = "status pending"));
-  resetTests();
-  await runTests();
+// document.getElementById("restart-test").addEventListener("click", async () => {
+//   resetTests();
+//   await runTests();
+// });
+
+function initializeTests() {
+  const testsContainer = document.getElementById("tests");
+
+  // Clear any existing content
+  testsContainer.innerHTML = "";
+
+  // Dynamically create test status elements
+  testConfigurations.forEach((test) => {
+    const resultElement = document.createElement("div");
+    resultElement.className = "list-item-row";
+    resultElement.innerHTML = `
+      <div class="status pending"></div>
+      <span>${test.name}</span>
+    `;
+    testsContainer.appendChild(resultElement);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize device info and tests
+  getDeviceInfo();
+  initializeTests();
 });
