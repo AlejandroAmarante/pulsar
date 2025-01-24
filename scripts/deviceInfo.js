@@ -21,7 +21,7 @@ export async function getDeviceInfo() {
   }
 
   const deviceMemory = navigator.deviceMemory
-    ? `At least ${navigator.deviceMemory.toFixed(2)} GB`
+    ? `≥ ${navigator.deviceMemory.toFixed(2)} GB`
     : "Unknown";
 
   const touchSupport = "ontouchstart" in window ? "Yes" : "No";
