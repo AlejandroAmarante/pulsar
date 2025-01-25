@@ -170,7 +170,6 @@ export async function testTouchTracking() {
       clearTimeout(timeoutId);
       cleanupTouchTest();
       touchDialog.style.display = "none";
-      overlay.style.display = "none";
     }
 
     // Initialize

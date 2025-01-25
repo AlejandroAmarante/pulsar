@@ -1,5 +1,5 @@
 import { getDeviceInfo } from "./deviceInfo.js";
-import { testMicrophone } from "./microphoneTest.js";
+import { testColorScreens } from "./colorScreenTest.js";
 import { testTouchTracking } from "./touchTest.js";
 import {
   testShortVibration,
@@ -15,9 +15,11 @@ import {
 } from "./soundTest.js";
 import { testFrontCamera } from "./frontCameraTest.js";
 import { testRearCamera } from "./rearCameraTest.js";
+import { testMicrophone } from "./microphoneTest.js";
 
 // Define test configurations
 const testConfigurations = [
+  { name: "Color Screen Test", testFunction: testColorScreens },
   { name: "Touch Tracking", testFunction: testTouchTracking },
   { name: "Short Vibration", testFunction: testShortVibration },
   { name: "Medium Vibration", testFunction: testMediumVibration },

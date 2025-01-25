@@ -57,7 +57,7 @@ async function testSingleVibration(name, pattern) {
     const title = dialog.querySelector("h3");
     const description = dialog.querySelector("p");
     title.textContent = `Vibration Test - ${name}`;
-    description.textContent = `A ${name} vibration will activate when you click the button below. Did you feel it?`;
+    description.textContent = `A ${name} vibration will activate when you click the button below. Please ensure that 'Do Not Disturb' is off. Did you feel it? `;
 
     const testButton = document.getElementById("vibrate-test");
     const yesButton = document.getElementById("vibration-yes");
@@ -81,7 +81,6 @@ async function testSingleVibration(name, pattern) {
 
     function handleResponse(felt) {
       dialog.style.display = "none";
-      overlay.style.display = "none";
       resolve({
         name: name,
         success: felt,

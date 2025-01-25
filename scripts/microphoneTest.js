@@ -130,7 +130,6 @@ export async function testMicrophone() {
           details: "Microphone access denied or not available",
         });
         dialog.style.display = "none";
-        overlay.style.display = "none";
       }
     });
 
@@ -143,7 +142,6 @@ export async function testMicrophone() {
 
     yesButton.addEventListener("click", () => {
       dialog.style.display = "none";
-      overlay.style.display = "none";
       if (audioUrl) URL.revokeObjectURL(audioUrl);
       resolve({
         name: "Microphone Test",
@@ -154,7 +152,6 @@ export async function testMicrophone() {
 
     noButton.addEventListener("click", () => {
       dialog.style.display = "none";
-      overlay.style.display = "none";
       if (audioUrl) URL.revokeObjectURL(audioUrl);
       resolve({
         name: "Microphone Test",

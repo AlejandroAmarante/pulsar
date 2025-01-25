@@ -39,6 +39,11 @@ p {
   margin: 0;
 }
 
+h2 {
+  font-weight: 300;
+  text-align: center;
+}
+
 /* Utility Classes */
 .greyed-out {
   opacity: 0.5;
@@ -150,10 +155,12 @@ button:disabled {
 #logo-text h1 {
   font-size: var(--font-size-large);
   letter-spacing: 2px;
+  font-weight: 300;
 }
 
 #logo-text p {
   font-size: var(--font-size-base);
+  font-weight: 600;
 }
 
 /* Result Status Styles */
@@ -347,7 +354,7 @@ button:disabled {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(130, 130, 130, 0.5);
   backdrop-filter: blur(4px);
   border: none;
   color: white;
@@ -358,9 +365,43 @@ button:disabled {
 }
 
 .action-button svg {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   color: white;
+}
+
+.preview-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.help-text {
+  text-align: center;
+  color: white;
+  margin: 0 0 1rem 0;
+  font-size: 14px;
+  opacity: 0.8;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.controls-hidden {
+  transform: translateY(100%);
+  opacity: 0;
 }
 
 /* Animations */
@@ -374,6 +415,10 @@ button:disabled {
   100% {
     opacity: 1;
   }
+}
+
+#color-dialog {
+  display: none;
 }
 
 /* Responsive Touch and Camera Controls */
