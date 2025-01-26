@@ -4,6 +4,7 @@ export async function testColorScreens() {
     const colorScreen = document.getElementById("color-screen");
     const helpText = document.getElementById("help-text");
     const confirmButtons = document.getElementById("color-confirm-buttons");
+    const previewControls = document.getElementById("color-preview-controls");
     const yesButton = document.getElementById("color-yes");
     const noButton = document.getElementById("color-no");
     const colors = [
@@ -30,6 +31,7 @@ export async function testColorScreens() {
       controlsVisible = !controlsVisible;
       confirmButtons.classList.toggle("controls-hidden", !controlsVisible);
       helpText.classList.toggle("help-text-hidden", !controlsVisible);
+      previewControls.classList.toggle("preview-controls-hidden", !controlsVisible);
     }
 
     function handleColorTestResponse(passed) {
