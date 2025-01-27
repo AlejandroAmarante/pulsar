@@ -54,6 +54,7 @@ export async function testGyroscope() {
         backgroundColor: "rgba(0, 0, 0, 0.7)",
         zIndex: "9999",
         pointerEvents: "none",
+        color: "#fff",
       });
 
       canvas.appendChild(progressIndicator);
