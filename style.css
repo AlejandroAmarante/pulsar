@@ -287,6 +287,14 @@ button:disabled {
   flex: 1;
 }
 
+#color-dialog {
+  display: none;
+}
+
+#gyro-dialog {
+  display: none;
+}
+
 #vibration-dialog {
   display: none;
 }
@@ -457,4 +465,9 @@ button:disabled {
 
 .help-text-hidden {
   opacity: 0;
+}
+
+#gyro-canvas {
+  width: 100%;
+  height: 100%;
 }
