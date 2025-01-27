@@ -1,4 +1,5 @@
 import { getDeviceInfo } from "./deviceInfo.js";
+import { testGyroscope } from "./gyroscopeSensorTest.js";
 import { testColorScreens } from "./colorScreenTest.js";
 import { testTouchTracking } from "./touchTest.js";
 import {
@@ -19,6 +20,7 @@ import { testMicrophone } from "./microphoneTest.js";
 
 // Define test configurations
 const testConfigurations = [
+  { name: "Gyroscope", testFunction: testGyroscope },
   { name: "Color Screen Test", testFunction: testColorScreens },
   { name: "Touch Tracking", testFunction: testTouchTracking },
   { name: "Short Vibration", testFunction: testShortVibration },

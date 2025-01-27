@@ -1,15 +1,6 @@
 export async function testGeolocation() {
   return new Promise((resolve) => {
     if ("geolocation" in navigator) {
-      // Timeout to prevent the test from getting stuck indefinitely
-      const timeoutId = setTimeout(() => {
-        resolve({
-          name: "Geolocation",
-          success: false,
-          details: "Geolocation request timed out",
-        });
-      }, 10000); // 10 seconds timeout
-
       // Request geolocation
       navigator.geolocation.getCurrentPosition(
         () => {
