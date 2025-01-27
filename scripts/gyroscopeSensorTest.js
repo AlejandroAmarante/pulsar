@@ -12,6 +12,13 @@ export async function testGyroscope() {
     const SLICE_ANGLE = 360 / NUM_SLICES;
     const filledSlices = new Set();
 
+    // Track current position for the indicator
+    let currentPosition = {
+      x: 0,
+      y: 0,
+      magnitude: 0,
+    };
+
     function setupUI() {
       Object.assign(progressIndicator.style, {
         position: "fixed",
@@ -43,7 +50,6 @@ export async function testGyroscope() {
       canvas.appendChild(progressIndicator);
       canvas.appendChild(instructions);
 
-      // Set canvas to full window size
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       canvas.style.backgroundColor = "#1a1a1a";
@@ -53,16 +59,32 @@ export async function testGyroscope() {
       const beta = event.beta || 0; // Forward/back tilt (-180 to 180)
       const gamma = event.gamma || 0; // Left/right tilt (-90 to 90)
 
+      // Calculate angle and magnitude
       let angle = ((Math.atan2(gamma, beta) * 180) / Math.PI + 360) % 360;
-      const sliceIndex = Math.floor(angle / SLICE_ANGLE);
-
-      // Only fill if the tilt is significant enough
       const tiltMagnitude = Math.sqrt(beta * beta + gamma * gamma);
+
+      // Update indicator position
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(centerX, centerY) * 0.8; // 80% of the smaller dimension
+      const normalizedMagnitude = Math.min(tiltMagnitude / 90, 1); // Normalize to 0-1
+      const radius = normalizedMagnitude * maxRadius;
+      const angleRad = (angle * Math.PI) / 180;
+
+      currentPosition = {
+        x: centerX + radius * Math.cos(angleRad - Math.PI / 2), // -90° to align with screen
+        y: centerY + radius * Math.sin(angleRad - Math.PI / 2),
+        magnitude: tiltMagnitude,
+      };
+
+      // Fill slice if magnitude is sufficient
       if (tiltMagnitude > 20) {
+        const sliceIndex = Math.floor(angle / SLICE_ANGLE);
         filledSlices.add(sliceIndex);
       }
 
       drawSlices();
+      drawIndicator();
       updateProgress();
       checkCompletion();
     }
@@ -72,8 +94,6 @@ export async function testGyroscope() {
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-
-      // Calculate the radius to reach screen corners
       const radius = Math.sqrt(
         Math.pow(Math.max(centerX, canvas.width - centerX), 2) +
           Math.pow(Math.max(centerY, canvas.height - centerY), 2)
@@ -90,13 +110,12 @@ export async function testGyroscope() {
         ctx.closePath();
 
         if (filledSlices.has(i)) {
-          ctx.fillStyle = "rgba(46, 204, 113, 0.6)"; // Filled slices
+          ctx.fillStyle = "rgba(46, 204, 113, 0.6)";
         } else {
-          ctx.fillStyle = "rgba(255, 255, 255, 0.1)"; // Empty slices
+          ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
         }
         ctx.fill();
 
-        // Draw slice borders
         ctx.strokeStyle = "#333";
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -107,6 +126,27 @@ export async function testGyroscope() {
       ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
       ctx.fillStyle = "#fff";
       ctx.fill();
+    }
+
+    function drawIndicator() {
+      // Draw line from center to indicator
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(currentPosition.x, currentPosition.y);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw indicator circle
+      ctx.beginPath();
+      ctx.arc(currentPosition.x, currentPosition.y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = currentPosition.magnitude > 20 ? "#2ecc71" : "#e74c3c";
+      ctx.fill();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
     }
 
     function updateProgress() {
@@ -143,15 +183,16 @@ export async function testGyroscope() {
 
     function cleanup() {
       window.removeEventListener("deviceorientation", updateOrientation);
+      window.removeEventListener("resize", handleResize);
       gyroDialog.style.display = "none";
       canvas.innerHTML = "";
     }
 
-    // Handle window resize
     function handleResize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       drawSlices();
+      drawIndicator();
     }
     window.addEventListener("resize", handleResize);
 
@@ -160,7 +201,6 @@ export async function testGyroscope() {
     gyroDialog.style.display = "block";
     drawSlices();
 
-    // Check if device orientation is available
     if (window.DeviceOrientationEvent) {
       window.addEventListener("deviceorientation", updateOrientation);
     } else {
