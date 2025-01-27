@@ -8,10 +8,9 @@ export async function testGyroscope() {
     const progressIndicator = document.createElement("div");
     const instructions = document.createElement("div");
 
-    // Track visited angles in 10-degree segments
-    const angleSegments = new Set();
-    const TOTAL_SEGMENTS = 648; // (360° × 180°) / 100° segments
-    const SEGMENT_SIZE = 10; // degrees
+    const NUM_SLICES = 16;
+    const SLICE_ANGLE = 360 / NUM_SLICES;
+    const filledSlices = new Set();
 
     function setupUI() {
       Object.assign(progressIndicator.style, {
@@ -44,107 +43,83 @@ export async function testGyroscope() {
       canvas.appendChild(progressIndicator);
       canvas.appendChild(instructions);
 
-      // Make canvas square
-      const size = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8);
-      canvas.width = size;
-      canvas.height = size;
+      // Set canvas to full window size
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       canvas.style.backgroundColor = "#1a1a1a";
     }
 
     function updateOrientation(event) {
-      // Normalize angles to 0-360 range
-      const alpha = ((event.alpha || 0) + 360) % 360;
-      const beta = ((event.beta || 0) + 180) % 360;
+      const beta = event.beta || 0; // Forward/back tilt (-180 to 180)
+      const gamma = event.gamma || 0; // Left/right tilt (-90 to 90)
 
-      // Add segment to visited set
-      const segment = getSegment(alpha, beta);
-      angleSegments.add(segment);
+      let angle = ((Math.atan2(gamma, beta) * 180) / Math.PI + 360) % 360;
+      const sliceIndex = Math.floor(angle / SLICE_ANGLE);
 
-      drawRadialIndicator(alpha, beta);
+      // Only fill if the tilt is significant enough
+      const tiltMagnitude = Math.sqrt(beta * beta + gamma * gamma);
+      if (tiltMagnitude > 20) {
+        filledSlices.add(sliceIndex);
+      }
+
+      drawSlices();
       updateProgress();
       checkCompletion();
     }
 
-    function getSegment(alpha, beta) {
-      // Convert angles to segment indices
-      const alphaSegment = Math.floor(alpha / SEGMENT_SIZE);
-      const betaSegment = Math.floor(beta / SEGMENT_SIZE);
-      return `${alphaSegment},${betaSegment}`;
-    }
-
-    function drawRadialIndicator(alpha, beta) {
+    function drawSlices() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      const radius = Math.min(centerX, centerY) * 0.8;
 
-      // Draw background grid
-      ctx.beginPath();
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 1;
+      // Calculate the radius to reach screen corners
+      const radius = Math.sqrt(
+        Math.pow(Math.max(centerX, canvas.width - centerX), 2) +
+          Math.pow(Math.max(centerY, canvas.height - centerY), 2)
+      );
 
-      // Draw concentric circles
-      for (let r = radius / 4; r <= radius; r += radius / 4) {
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+      for (let i = 0; i < NUM_SLICES; i++) {
+        const startAngle = (i * SLICE_ANGLE * Math.PI) / 180;
+        const endAngle = ((i + 1) * SLICE_ANGLE * Math.PI) / 180;
 
-      // Draw radial lines
-      for (let angle = 0; angle < 360; angle += 30) {
-        const radian = (angle * Math.PI) / 180;
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
-        ctx.lineTo(
-          centerX + radius * Math.cos(radian),
-          centerY + radius * Math.sin(radian)
-        );
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.lineTo(centerX, centerY);
+        ctx.closePath();
+
+        if (filledSlices.has(i)) {
+          ctx.fillStyle = "rgba(46, 204, 113, 0.6)"; // Filled slices
+        } else {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.1)"; // Empty slices
+        }
+        ctx.fill();
+
+        // Draw slice borders
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 2;
         ctx.stroke();
       }
 
-      // Draw visited segments
-      ctx.fillStyle = "rgba(46, 204, 113, 0.2)";
-      angleSegments.forEach((segment) => {
-        const [alphaIdx, betaIdx] = segment.split(",").map(Number);
-        const segAlpha = (alphaIdx * SEGMENT_SIZE * Math.PI) / 180;
-        const segBeta = (betaIdx * SEGMENT_SIZE * Math.PI) / 180;
-
-        ctx.beginPath();
-        ctx.arc(
-          centerX + ((radius * betaIdx) / 36) * Math.cos(segAlpha),
-          centerY + ((radius * betaIdx) / 36) * Math.sin(segAlpha),
-          5,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-      });
-
-      // Draw current position indicator
+      // Draw center point
       ctx.beginPath();
-      ctx.fillStyle = "#2ecc71";
-      ctx.arc(
-        centerX + ((radius * beta) / 180) * Math.cos((alpha * Math.PI) / 180),
-        centerY + ((radius * beta) / 180) * Math.sin((alpha * Math.PI) / 180),
-        8,
-        0,
-        Math.PI * 2
-      );
+      ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff";
       ctx.fill();
     }
 
     function updateProgress() {
-      const progress = (angleSegments.size / TOTAL_SEGMENTS) * 100;
-      progressIndicator.textContent = `Coverage: ${Math.round(progress)}%`;
+      const progress = (filledSlices.size / NUM_SLICES) * 100;
+      progressIndicator.textContent = `Progress: ${Math.round(progress)}%`;
       updateInstructions(progress);
     }
 
     function updateInstructions(progress) {
       const messages = {
         30: "Tilt your device in different directions",
-        60: "Keep going! Try to fill in the empty areas",
-        90: "Almost there! Check for any gaps",
+        60: "Keep going! Try tilting in the empty sections",
+        90: "Almost there! Look for any unfilled slices",
       };
 
       for (const [threshold, message] of Object.entries(messages)) {
@@ -156,16 +131,12 @@ export async function testGyroscope() {
     }
 
     function checkCompletion() {
-      const coverage = angleSegments.size / TOTAL_SEGMENTS;
-      if (coverage >= 0.75) {
-        // 75% coverage required
+      if (filledSlices.size === NUM_SLICES) {
         cleanup();
         resolve({
           name: "Gyroscope Test",
           success: true,
-          details: `Gyroscope calibrated successfully with ${Math.round(
-            coverage * 100
-          )}% coverage`,
+          details: "Gyroscope calibrated successfully in all directions",
         });
       }
     }
@@ -176,9 +147,18 @@ export async function testGyroscope() {
       canvas.innerHTML = "";
     }
 
+    // Handle window resize
+    function handleResize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      drawSlices();
+    }
+    window.addEventListener("resize", handleResize);
+
     // Initialize
     setupUI();
     gyroDialog.style.display = "block";
+    drawSlices();
 
     // Check if device orientation is available
     if (window.DeviceOrientationEvent) {
