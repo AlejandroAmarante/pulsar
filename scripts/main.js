@@ -137,6 +137,7 @@ async function runTests() {
       "mic-dialog",
       "color-dialog",
       "vibration-dialog",
+      "gyro-dialog",
     ];
     dialogs.forEach((dialog) => {
       document.getElementById(dialog).style.display = "none";
@@ -180,6 +181,7 @@ async function runTests() {
     "overlay",
     "color-dialog",
     "vibration-dialog",
+    "gyro-dialog",
   ];
   dialogs.forEach((dialog) => {
     document.getElementById(dialog).style.display = "none";

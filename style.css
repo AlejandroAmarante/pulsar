@@ -311,7 +311,7 @@ button:disabled {
   display: none;
 }
 
-#camera-dialog {
+#gyro-dialog {
   display: none;
 }
 
@@ -369,12 +369,6 @@ button:disabled {
   align-items: center;
   justify-content: center;
 }
-/* 
-.action-button svg {
-  width: 42px;
-  height: 42px;
-  color: white;
-} */
 
 .preview-controls {
   position: absolute;
