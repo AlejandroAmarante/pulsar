@@ -60,19 +60,20 @@ export async function testGyroscope() {
       const gamma = event.gamma || 0; // Left/right tilt (-90 to 90)
 
       // Calculate angle and magnitude
-      let angle = ((Math.atan2(gamma, beta) * 180) / Math.PI + 360) % 360;
+      // Negate beta to correct up/down orientation
+      let angle = ((Math.atan2(gamma, -beta) * 180) / Math.PI + 360) % 360;
       const tiltMagnitude = Math.sqrt(beta * beta + gamma * gamma);
 
       // Update indicator position
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      const maxRadius = Math.min(centerX, centerY) * 0.8; // 80% of the smaller dimension
-      const normalizedMagnitude = Math.min(tiltMagnitude / 90, 1); // Normalize to 0-1
+      const maxRadius = Math.min(centerX, centerY) * 0.8;
+      const normalizedMagnitude = Math.min(tiltMagnitude / 90, 1);
       const radius = normalizedMagnitude * maxRadius;
       const angleRad = (angle * Math.PI) / 180;
 
       currentPosition = {
-        x: centerX + radius * Math.cos(angleRad - Math.PI / 2), // -90° to align with screen
+        x: centerX + radius * Math.cos(angleRad - Math.PI / 2),
         y: centerY + radius * Math.sin(angleRad - Math.PI / 2),
         magnitude: tiltMagnitude,
       };
