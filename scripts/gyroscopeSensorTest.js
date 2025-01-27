@@ -12,11 +12,11 @@ export async function testGyroscope() {
     const SLICE_ANGLE = 360 / NUM_SLICES;
     const filledSlices = new Set();
 
-    // Track current position for the indicator
     let currentPosition = {
       x: 0,
       y: 0,
       magnitude: 0,
+      sliceIndex: 0,
     };
 
     function setupUI() {
@@ -59,9 +59,9 @@ export async function testGyroscope() {
       const beta = event.beta || 0; // Forward/back tilt (-180 to 180)
       const gamma = event.gamma || 0; // Left/right tilt (-90 to 90)
 
-      // Calculate angle and magnitude
-      // Negate beta to correct up/down orientation
-      let angle = ((Math.atan2(gamma, -beta) * 180) / Math.PI + 360) % 360;
+      // Calculate angle for both indicator and slices
+      // Adjust starting angle by -90 to align with screen orientation
+      let angle = ((Math.atan2(gamma, -beta) * 180) / Math.PI + 270) % 360;
       const tiltMagnitude = Math.sqrt(beta * beta + gamma * gamma);
 
       // Update indicator position
@@ -72,15 +72,18 @@ export async function testGyroscope() {
       const radius = normalizedMagnitude * maxRadius;
       const angleRad = (angle * Math.PI) / 180;
 
+      // Calculate slice index based on the same angle
+      const sliceIndex = Math.floor(angle / SLICE_ANGLE);
+
       currentPosition = {
-        x: centerX + radius * Math.cos(angleRad - Math.PI / 2),
-        y: centerY + radius * Math.sin(angleRad - Math.PI / 2),
+        x: centerX + radius * Math.cos(angleRad),
+        y: centerY + radius * Math.sin(angleRad),
         magnitude: tiltMagnitude,
+        sliceIndex: sliceIndex,
       };
 
       // Fill slice if magnitude is sufficient
       if (tiltMagnitude > 20) {
-        const sliceIndex = Math.floor(angle / SLICE_ANGLE);
         filledSlices.add(sliceIndex);
       }
 
@@ -110,10 +113,16 @@ export async function testGyroscope() {
         ctx.lineTo(centerX, centerY);
         ctx.closePath();
 
-        if (filledSlices.has(i)) {
-          ctx.fillStyle = "rgba(46, 204, 113, 0.6)";
+        // Highlight current slice and filled slices differently
+        if (
+          i === currentPosition.sliceIndex &&
+          currentPosition.magnitude > 20
+        ) {
+          ctx.fillStyle = "rgba(46, 204, 113, 0.8)"; // Current active slice
+        } else if (filledSlices.has(i)) {
+          ctx.fillStyle = "rgba(46, 204, 113, 0.6)"; // Previously filled slices
         } else {
-          ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+          ctx.fillStyle = "rgba(255, 255, 255, 0.1)"; // Empty slices
         }
         ctx.fill();
 
@@ -130,9 +139,10 @@ export async function testGyroscope() {
     }
 
     function drawIndicator() {
-      // Draw line from center to indicator
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
+
+      // Draw line from center to indicator
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(currentPosition.x, currentPosition.y);
