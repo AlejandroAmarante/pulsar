@@ -439,11 +439,17 @@ button:disabled {
 }
 
 .dialog-instructions {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgb(255, 255, 255);
   text-align: center;
-  color: var(--white);
-  margin: 10px 0;
-  z-index: 999;
-  position: relative;
+  z-index: 9999;
+  pointer-events: none;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .touch-clear {

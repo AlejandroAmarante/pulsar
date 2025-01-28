@@ -201,23 +201,6 @@ function setupUI(progressIndicator, instructions, canvas) {
         pointerEvents: "none",
       },
     },
-    {
-      element: instructions,
-      id: "touch-instructions",
-      styles: {
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        color: "#fff",
-        textAlign: "center",
-        zIndex: "9999",
-        pointerEvents: "none",
-        padding: "10px",
-        borderRadius: "5px",
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-      },
-    },
   ];
 
   uiElements.forEach(({ element, id, styles }) => {

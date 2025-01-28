@@ -4,6 +4,8 @@ export async function testGyroscope() {
     const canvas = document.getElementById("gyro-canvas");
     const ctx = canvas.getContext("2d");
     const gyroInstructions = document.getElementById("gyro-instructions");
+
+    gyroDialog.style.display = "block";
     gyroInstructions.textContent = "Tilt the device to test the gyroscope";
 
     // UI elements
@@ -136,8 +138,8 @@ export async function testGyroscope() {
     }
 
     function updateInstructions(progress) {
-      if (progress < 0) {
-        gyroInstructions.textContent = "";
+      if (progress > 0) {
+        gyroInstructions.style.display = "none";
       }
     }
 
