@@ -187,7 +187,7 @@ function setupUI(progressIndicator, instructions, canvas) {
   const uiElements = [
     {
       element: progressIndicator,
-      className: "touch-progress",
+      id: "touch-progress",
       styles: {
         position: "fixed",
         top: "20px",
@@ -203,7 +203,7 @@ function setupUI(progressIndicator, instructions, canvas) {
     },
     {
       element: instructions,
-      className: "touch-instructions",
+      id: "touch-instructions",
       styles: {
         position: "fixed",
         top: "50%",
@@ -220,8 +220,8 @@ function setupUI(progressIndicator, instructions, canvas) {
     },
   ];
 
-  uiElements.forEach(({ element, className, styles }) => {
-    element.className = className;
+  uiElements.forEach(({ element, id, styles }) => {
+    element.id = id;
     Object.assign(element.style, styles);
     canvas.appendChild(element);
   });

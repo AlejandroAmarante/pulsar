@@ -3,10 +3,10 @@ export async function testGyroscope() {
     const gyroDialog = document.getElementById("gyro-dialog");
     const canvas = document.getElementById("gyro-canvas");
     const ctx = canvas.getContext("2d");
+    const gyroInstructions = document.getElementById("gyro-instructions");
+    gyroInstructions.textContent = "Tilt the device to test the gyroscope";
 
     // UI elements
-    const progressIndicator = document.createElement("div");
-    const instructions = document.createElement("div");
 
     const NUM_SLICES = 16;
     const SLICE_ANGLE = 360 / NUM_SLICES;
@@ -20,36 +20,6 @@ export async function testGyroscope() {
     };
 
     function setupUI() {
-      Object.assign(progressIndicator.style, {
-        position: "fixed",
-        top: "20px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        color: "#fff",
-        padding: "10px",
-        borderRadius: "5px",
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        zIndex: "9999",
-        pointerEvents: "none",
-      });
-
-      Object.assign(instructions.style, {
-        position: "fixed",
-        bottom: "40px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        color: "#fff",
-        textAlign: "center",
-        padding: "10px",
-        borderRadius: "5px",
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        zIndex: "9999",
-        pointerEvents: "none",
-      });
-
-      canvas.appendChild(progressIndicator);
-      canvas.appendChild(instructions);
-
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       canvas.style.backgroundColor = "#1a1a1a";
@@ -162,22 +132,12 @@ export async function testGyroscope() {
 
     function updateProgress() {
       const progress = (filledSlices.size / NUM_SLICES) * 100;
-      progressIndicator.textContent = `Progress: ${Math.round(progress)}%`;
       updateInstructions(progress);
     }
 
     function updateInstructions(progress) {
-      const messages = {
-        30: "Tilt your device in different directions",
-        60: "Keep going! Try tilting in the empty sections",
-        90: "Almost there! Look for any unfilled slices",
-      };
-
-      for (const [threshold, message] of Object.entries(messages)) {
-        if (progress < threshold) {
-          instructions.textContent = message;
-          break;
-        }
+      if (progress < 0) {
+        gyroInstructions.textContent = "";
       }
     }
 

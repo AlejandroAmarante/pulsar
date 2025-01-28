@@ -438,9 +438,9 @@ button:disabled {
   background: var(--white);
 }
 
-.touch-instructions {
+.dialog-instructions {
   text-align: center;
-  color: #666;
+  color: var(--white);
   margin: 10px 0;
   z-index: 999;
   position: relative;
