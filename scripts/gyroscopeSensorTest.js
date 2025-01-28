@@ -141,7 +141,7 @@ export async function testGyroscope() {
       if (progress > 0) {
         setTimeout(() => {
           gyroInstructions.style.display = "none";
-        }, 3000);
+        }, 2000);
       }
     }
 
