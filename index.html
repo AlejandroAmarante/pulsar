@@ -28,15 +28,16 @@
         </div>
         <h2>DEVICE INFORMATION</h2>
         <div id="device-info"></div>
-        <button id="start-test"><img class="button-loading" src="imgs/ring-resize.svg" alt="Loading..."> <span
-                class="button-text">Start All
-                Tests</span></button>
+        <button id="start-test">
+            <img class="button-loading" src="imgs/ring-resize.svg" alt="Loading...">
+            <span class="button-text">Start</span>
+        </button>
     </div>
 
     <div id="tests-card" class="card">
         <h2>AVAILABLE TESTS</h2>
-        <div class="progress-bar">
-            <div class="progress" id="progress"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
         </div>
         <div id="tests"></div>
         <button id="redo-test"><img class="button-loading" src="imgs/ring-resize.svg" alt="Loading..."> <span
@@ -61,12 +62,13 @@
         <div id="color-screen"
             style="width: 100%; height: 100%; position: relative; display: flex; justify-content: center; align-items: center;">
             <div id="color-preview-controls" class="preview-controls">
-                <p id="color-help-text" class="help-text">Tap the screen to hide/show buttons</p>
+
                 <div id="color-confirm-buttons" class="button-container">
                     <button id="color-no" class="action-button"><i data-lucide="x" class="button-icon"></i></button>
                     <button id="color-yes" class="action-button"><i data-lucide="check"
                             class="button-icon"></i></button>
                 </div>
+                <p id="color-help-text" class="help-text">Tap the screen to hide/show buttons</p>
             </div>
         </div>
     </div>
@@ -120,7 +122,6 @@
         </div>
 
         <div id="preview-controls" class="preview-controls hidden">
-            <p id="help-text" class="help-text">Tap the screen to hide/show buttons</p>
             <div id="button-container" class="button-container">
                 <button id="retake-button" class="action-button" aria-label="Retake photo">
                     <i data-lucide="rotate-ccw" class="button-icon"></i>
@@ -132,6 +133,7 @@
                     <i data-lucide="x" class="button-icon"></i>
                 </button>
             </div>
+            <p id="help-text" class="help-text">Tap the screen to hide/show buttons</p>
         </div>
         <img id="photo-preview" class="photo-preview hidden" />
     </div>

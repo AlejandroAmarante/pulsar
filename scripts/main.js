@@ -18,72 +18,117 @@ import { testFrontCamera } from "./frontCameraTest.js";
 import { testRearCamera } from "./rearCameraTest.js";
 import { testMicrophone } from "./microphoneTest.js";
 
-// Define test configurations
-const testConfigurations = [
-  { name: "Gyroscope", testFunction: testGyroscope },
-  { name: "Color Screen Test", testFunction: testColorScreens },
-  { name: "Touch Tracking", testFunction: testTouchTracking },
-  { name: "Short Vibration", testFunction: testShortVibration },
-  { name: "Medium Vibration", testFunction: testMediumVibration },
-  { name: "Long Vibration", testFunction: testLongVibration },
-  { name: "Geolocation", testFunction: testGeolocation },
-  { name: "Bluetooth", testFunction: testBluetooth },
-  { name: "Low Frequency Sound", testFunction: testLowFrequency },
-  { name: "Mid Frequency Sound", testFunction: testMidFrequency },
-  { name: "High Frequency Sound", testFunction: testHighFrequency },
-  { name: "Front Camera", testFunction: testFrontCamera },
-  { name: "Rear Camera", testFunction: testRearCamera },
-  { name: "Microphone", testFunction: testMicrophone },
+// Constants at the top for better maintainability
+const TEST_DURATION = 30; // seconds
+const DIALOG_IDS = [
+  "camera-dialog",
+  "touch-dialog",
+  "sound-dialog",
+  "mic-dialog",
+  "color-dialog",
+  "vibration-dialog",
+  "gyro-dialog",
 ];
 
-async function runTests() {
-  // Button elements
-  const startTestButton = document.getElementById("start-test");
-  const startTestButtonText =
-    startTestButton.getElementsByClassName("button-text")[0];
-  const buttonLoading =
-    startTestButton.getElementsByClassName("button-loading")[0];
-  const testsCard = document.getElementById("tests-card");
-  const testsContainer = document.getElementById("tests");
-  const redoTestButton = document.getElementById("redo-test");
+// Group related imports
+const sensorTests = {
+  gyroscope: { name: "Gyroscope", testFunction: testGyroscope },
+  colorScreen: { name: "Color Screen Test", testFunction: testColorScreens },
+  touch: { name: "Touch Tracking", testFunction: testTouchTracking },
+};
 
-  redoTestButton.style.display = "none";
+const vibrationTests = {
+  short: { name: "Short Vibration", testFunction: testShortVibration },
+  medium: { name: "Medium Vibration", testFunction: testMediumVibration },
+  long: { name: "Long Vibration", testFunction: testLongVibration },
+};
 
-  const overlay = document.getElementById("overlay");
-  overlay.style.display = "flex";
+const connectivityTests = {
+  geolocation: { name: "Geolocation", testFunction: testGeolocation },
+  bluetooth: { name: "Bluetooth", testFunction: testBluetooth },
+};
 
-  // Update button state
-  function updateButtonState(isRunning, testName = "") {
-    startTestButton.disabled = isRunning;
-    startTestButtonText.textContent = isRunning
-      ? `Testing ${testName}`
-      : "Start All Tests";
+const audioTests = {
+  lowFreq: { name: "Low Frequency Sound", testFunction: testLowFrequency },
+  midFreq: { name: "Mid Frequency Sound", testFunction: testMidFrequency },
+  highFreq: { name: "High Frequency Sound", testFunction: testHighFrequency },
+  microphone: { name: "Microphone", testFunction: testMicrophone },
+};
+
+const cameraTests = {
+  front: { name: "Front Camera", testFunction: testFrontCamera },
+  rear: { name: "Rear Camera", testFunction: testRearCamera },
+};
+
+// Combine all tests
+const testConfigurations = [
+  ...Object.values(sensorTests),
+  ...Object.values(vibrationTests),
+  ...Object.values(connectivityTests),
+  ...Object.values(audioTests),
+  ...Object.values(cameraTests),
+];
+
+class TestUI {
+  constructor() {
+    this.elements = {
+      startButton: document.getElementById("start-test"),
+      startButtonText: document.querySelector("#start-test .button-text"),
+      buttonLoading: document.querySelector("#start-test .button-loading"),
+      testsCard: document.getElementById("tests-card"),
+      testsContainer: document.getElementById("tests"),
+      redoButton: document.getElementById("redo-test"),
+      overlay: document.getElementById("overlay"),
+      progressBar: document.getElementById("progress-bar"),
+      timerBar: document.getElementById("timer-bar"),
+    };
+
+    this.bindEvents();
+    this.progressTimer = this.createProgressBarTimer();
+  }
+
+  bindEvents() {
+    this.elements.startButton.addEventListener("click", async () => {
+      console.log("Start button clicked"); // Debug log
+      this.elements.startButton.disabled = true;
+      await this.runTests();
+      this.elements.startButton.disabled = false;
+    });
+
+    this.elements.redoButton.addEventListener("click", async () => {
+      this.resetTests();
+      await this.runTests();
+    });
+  }
+
+  updateButtonState(isRunning, testName = "") {
+    const { startButton, startButtonText, buttonLoading } = this.elements;
+    startButton.disabled = isRunning;
+    startButtonText.textContent = isRunning ? `Testing ${testName}` : "Start";
     buttonLoading.style.display = isRunning ? "block" : "none";
   }
 
-  // Timer progress bar management
-  function createProgressBarTimer() {
-    const timerProgressBar = document.getElementById("timer-bar");
+  createProgressBarTimer() {
     let startTime = null;
     let animationFrameId = null;
 
-    function updateProgressBar(timestamp) {
+    const updateProgressBar = (timestamp) => {
       if (!startTime) startTime = timestamp;
       const elapsed = (timestamp - startTime) / 1000;
-      const progress = Math.min((elapsed / duration) * 100, 100);
+      const progress = Math.min((elapsed / TEST_DURATION) * 100, 100);
 
-      timerProgressBar.style.display = "block";
-      timerProgressBar.style.width = `${progress}%`;
+      this.elements.timerBar.style.display = "block";
+      this.elements.timerBar.style.width = `${progress}%`;
 
-      if (elapsed < duration) {
+      if (elapsed < TEST_DURATION) {
         animationFrameId = requestAnimationFrame(updateProgressBar);
       }
-    }
+    };
 
     return {
       start: () => {
-        timerProgressBar.style.display = "block";
-        timerProgressBar.style.width = "0%";
+        this.elements.timerBar.style.display = "block";
+        this.elements.timerBar.style.width = "0%";
         startTime = null;
         animationFrameId = requestAnimationFrame(updateProgressBar);
       },
@@ -91,205 +136,144 @@ async function runTests() {
         if (animationFrameId) {
           cancelAnimationFrame(animationFrameId);
         }
-        timerProgressBar.style.display = "none";
-        timerProgressBar.style.width = "0%";
+        this.elements.timerBar.style.display = "none";
+        this.elements.timerBar.style.width = "0%";
       },
     };
   }
 
-  // Initialize
-  updateButtonState(true);
-  const progressTimer = createProgressBarTimer();
-  let results = [];
-  const progress = document.getElementById("progress");
-  const duration = 30;
+  async runTests() {
+    console.log("Running tests..."); // Debug log
+    const results = [];
 
-  // Dynamically create test status elements if not already present
-  if (testsContainer.children.length === 0) {
-    testConfigurations.forEach((test) => {
-      const resultElement = document.createElement("div");
-      resultElement.className = "list-item-row";
-      resultElement.innerHTML = `
-        <div class="status pending"></div>
-        <span>${test.name}</span>
-      `;
-      testsContainer.appendChild(resultElement);
-    });
+    this.elements.redoButton.style.display = "none";
+    this.elements.overlay.style.display = "flex";
+
+    initializeTestElements(this.elements.testsContainer);
+
+    const statusDots = document.querySelectorAll(".status");
+
+    for (let i = 0; i < testConfigurations.length; i++) {
+      const { name, testFunction } = testConfigurations[i];
+
+      this.updateButtonState(true, name);
+      hideAllDialogs();
+      this.progressTimer.start();
+
+      const result = await this.runSingleTest(testFunction, name);
+      this.progressTimer.stop();
+      results.push(result);
+
+      this.elements.progressBar.style.width = `${
+        ((i + 1) / testConfigurations.length) * 100
+      }%`;
+      statusDots[i].className = `status ${
+        result.success ? "success" : "failure"
+      }`;
+    }
+
+    this.elements.overlay.style.display = "none";
+    hideAllDialogs();
+    this.displayTestResults(results);
   }
 
-  const statusDots = document.querySelectorAll(".status");
-
-  // Change card heading and style during testing
-  testsCard.querySelector("h2").textContent = "Available Tests";
-  testsCard.classList.remove("test-results");
-
-  for (let i = 0; i < testConfigurations.length; i++) {
-    const { name, testFunction } = testConfigurations[i];
-
-    // Update button text with current test name
-    updateButtonState(true, name);
-
-    // Cleanup dialogs
-    const dialogs = [
-      "camera-dialog",
-      "touch-dialog",
-      "sound-dialog",
-      "mic-dialog",
-      "color-dialog",
-      "vibration-dialog",
-      "gyro-dialog",
-    ];
-    dialogs.forEach((dialog) => {
-      document.getElementById(dialog).style.display = "none";
-    });
-
-    // Start timer for current test
-    progressTimer.start();
-
-    const result = await Promise.race([
-      testFunction(),
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Test timed out")), duration * 1000);
-      }),
-    ]).catch((error) => ({
-      name: name,
-      success: false,
-      details:
-        error.message === "Test timed out"
-          ? `Test timed out after ${duration} seconds`
-          : error.message,
-    }));
-
-    // Stop timer after test completion
-    progressTimer.stop();
-
-    results.push(result);
-
-    // Update progress and status
-    progress.style.width = `${((i + 1) / testConfigurations.length) * 100}%`;
-    statusDots[i].className = `status ${
-      result.success ? "success" : "failure"
-    }`;
+  async runSingleTest(testFunction, name) {
+    try {
+      const result = await Promise.race([
+        testFunction(),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Test timed out")),
+            TEST_DURATION * 1000
+          )
+        ),
+      ]);
+      return { name, success: true, details: result?.details || "Test Passed" };
+    } catch (error) {
+      return {
+        name,
+        success: false,
+        details:
+          error.message === "Test timed out"
+            ? `Test timed out after ${TEST_DURATION} seconds`
+            : error.message,
+      };
+    }
   }
 
-  // Cleanup dialogs
-  const dialogs = [
-    "camera-dialog",
-    "touch-dialog",
-    "sound-dialog",
-    "mic-dialog",
-    "overlay",
-    "color-dialog",
-    "vibration-dialog",
-    "gyro-dialog",
-  ];
-  dialogs.forEach((dialog) => {
-    document.getElementById(dialog).style.display = "none";
-  });
+  displayTestResults(results) {
+    const { testsCard, testsContainer, redoButton } = this.elements;
 
-  // Transform the tests card into results view
-  testsCard.querySelector("h2").textContent = "Test Results";
-  testsCard.classList.add("test-results");
-  testsContainer.innerHTML = results
-    .map(
-      (r) => `
-      <div class="list-item-row">
-        <div class="status ${r.success ? "success" : "failure"}"></div>
-        <div>
-          <strong>${r.name}</strong><br>
-          ${r.details || (r.success ? "Test Passed" : "Test Failed")}
-        </div>
+    testsCard.querySelector("h2").textContent = "TEST RESULTS";
+    testsCard.classList.add("test-results");
+
+    testsContainer.innerHTML = results
+      .map(
+        (r) => `
+    <div class="list-item-row">
+      <div class="status ${r.success ? "success" : "failure"}"></div>
+      <div>
+        <strong>${r.name}</strong><br>
+        ${r.details}
       </div>
-    `
+    </div>
+  `
+      )
+      .join("");
+
+    ui.updateButtonState(false);
+    redoButton.style.display = "block";
+
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: "smooth",
+    });
+  }
+
+  resetTests() {
+    const { testsCard, testsContainer, progressBar, redoButton } =
+      this.elements;
+
+    redoButton.style.display = "none";
+    testsCard.querySelector("h2").textContent = "Available Tests";
+    testsCard.classList.remove("test-results");
+
+    initializeTestElements(testsContainer);
+    progressBar.style.width = "0%";
+
+    if (typeof cleanupTouchTest === "function") {
+      cleanupTouchTest();
+    }
+
+    hideAllDialogs();
+    getDeviceInfo();
+  }
+}
+
+function hideAllDialogs() {
+  DIALOG_IDS.forEach((id) => {
+    const dialog = document.getElementById(id);
+    if (dialog) dialog.style.display = "none";
+  });
+}
+
+function initializeTestElements(container) {
+  container.innerHTML = testConfigurations
+    .map(
+      (test) => `
+    <div class="list-item-row">
+      <div class="status pending"></div>
+      <span>${test.name}</span>
+    </div>
+  `
     )
     .join("");
-
-  // Reset button state
-  updateButtonState(false);
-  redoTestButton.style.display = "block";
-
-  window.scrollTo({
-    top: document.body.scrollHeight,
-    behavior: "smooth",
-  });
 }
 
-function resetTests() {
-  // Reset tests card
-  const testsCard = document.getElementById("tests-card");
-  const testsContainer = document.getElementById("tests");
-  const progress = document.getElementById("progress");
-  const redoTestButton = document.getElementById("redo-test");
-
-  redoTestButton.style.display = "none";
-
-  // Restore available tests view
-  testsCard.querySelector("h2").textContent = "Available Tests";
-  testsCard.classList.remove("test-results");
-
-  // Recreate test status elements
-  testsContainer.innerHTML = "";
-  testConfigurations.forEach((test) => {
-    const resultElement = document.createElement("div");
-    resultElement.className = "list-item-row";
-    resultElement.innerHTML = `
-      <div class="status pending"></div>
-      <span>${test.name}</span>
-    `;
-    testsContainer.appendChild(resultElement);
-  });
-
-  // Clear progress
-  progress.style.width = "0%";
-
-  // Properly cleanup touch test
-  cleanupTouchTest();
-
-  // Reset dialogs
-  const dialogs = ["sound-dialog", "touch-dialog", "mic-dialog"];
-  dialogs.forEach((id) => {
-    const dialog = document.getElementById(id);
-    if (dialog) {
-      dialog.style.display = "none";
-    }
-  });
-
-  // Reinitialize device information
-  getDeviceInfo();
-}
-
-// Event Listeners
-document.getElementById("start-test").addEventListener("click", async () => {
-  document.getElementById("start-test").disabled = true;
-  await runTests();
-  document.getElementById("start-test").disabled = false;
-});
-
-document.getElementById("redo-test").addEventListener("click", async () => {
-  resetTests();
-  await runTests();
-});
-
-function initializeTests() {
-  const testsContainer = document.getElementById("tests");
-
-  // Clear any existing content
-  testsContainer.innerHTML = "";
-
-  // Dynamically create test status elements
-  testConfigurations.forEach((test) => {
-    const resultElement = document.createElement("div");
-    resultElement.className = "list-item-row";
-    resultElement.innerHTML = `
-      <div class="status pending"></div>
-      <span>${test.name}</span>
-    `;
-    testsContainer.appendChild(resultElement);
-  });
-}
-
+let ui;
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize device info and tests
+  console.log("DOM loaded"); // Debug log
   getDeviceInfo();
-  initializeTests();
+  ui = new TestUI();
+  initializeTestElements(document.getElementById("tests"));
 });

@@ -1,31 +1,29 @@
 export async function testGeolocation() {
   return new Promise((resolve) => {
-    if ("geolocation" in navigator) {
-      // Request geolocation
-      navigator.geolocation.getCurrentPosition(
-        () => {
-          clearTimeout(timeoutId); // Clear the timeout
-          resolve({
-            name: "Geolocation",
-            success: true,
-            details: "Geolocation access granted",
-          });
-        },
-        () => {
-          clearTimeout(timeoutId); // Clear the timeout
-          resolve({
-            name: "Geolocation",
-            success: false,
-            details: "Geolocation access denied",
-          });
-        }
-      );
-    } else {
+    if (!("geolocation" in navigator)) {
       resolve({
         name: "Geolocation",
         success: false,
         details: "Geolocation API not supported",
       });
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        resolve({
+          name: "Geolocation",
+          success: true,
+          details: "Geolocation access granted",
+        });
+      },
+      () => {
+        resolve({
+          name: "Geolocation",
+          success: false,
+          details: "Geolocation access denied",
+        });
+      }
+    );
   });
 }
