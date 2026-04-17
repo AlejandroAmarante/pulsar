@@ -3,150 +3,237 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <title>Pulsar Phone Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#090909">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Pulsar · Device Diagnostics</title>
     <link rel="icon" type="image/x-icon" href="imgs/favicon.svg">
-    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Fonts: Plus Jakarta Sans (body/headings) + JetBrains Mono (data) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="manifest" href="manifest.json">
+
+    <!-- Remix Icon -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.1/fonts/remixicon.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="card">
-        <div id="logo">
-            <img src="imgs/favicon.svg" alt="Pulsar Logo">
-            <div id="logo-text">
-                <h1>PULSAR</h1>
-                <p>Device Calibration</p>
+    <div class="page-shell">
+        <!-- ── DEVICE HEADER ───────────────────────────── -->
+
+        <header class="app-header">
+            <div class="logo-mark" aria-hidden="true">
+                <svg class="ekg-svg" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    aria-hidden="true">
+                    <polyline points="0,28 8,28 11,26 14,28 17,28 19,30 21,10 23,36 25,28 28,30 32,28 48,28"
+                        stroke="#8223d2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
             </div>
-        </div>
-        <h2>DEVICE INFORMATION</h2>
-        <div id="device-info"></div>
-        <button id="start-test">
-            <img class="button-loading" src="imgs/ring-resize.svg" alt="Loading...">
-            <span class="button-text">Start</span>
-        </button>
+
+            <div class="logo-text">
+                <span class="logo-name">PULSAR</span>
+                <span class="logo-sub">Device </br> Diagnostics</span>
+            </div>
+            <button id="start-test" class="btn-primary btn-header">
+                <span class="btn-spinner"></span>
+                <i class="ri-play-fill btn-icon"></i>
+                <span class="btn-label">Run Tests</span>
+            </button>
+        </header>
+
+
+        <!-- ── MAIN CONTENT ─────────────────────────────── -->
+        <main class="content-grid" aria-label="Calibration dashboard">
+            <!-- ── DEVICE INFO + ACTIONS ────────────────── -->
+            <section class="section panel" id="device-section">
+                <div class="section-header section-header--single">
+                    <div class="block-label">Device Info</div>
+                </div>
+
+                <div class="device-block">
+                    <div id="device-info"></div>
+                </div>
+            </section>
+
+            <!-- ── TESTS ─────────────────────────────────── -->
+            <section class="section panel" id="tests-section">
+                <div class="section-header">
+                    <div class="block-label" id="tests-label">Tests</div>
+                    <span class="test-count" id="test-count"></span>
+                </div>
+
+                <div id="tests"></div>
+
+            </section>
+        </main>
     </div>
 
-    <div id="tests-card" class="card">
-        <h2>AVAILABLE TESTS</h2>
-        <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        <div id="tests"></div>
-        <button id="redo-test"><img class="button-loading" src="imgs/ring-resize.svg" alt="Loading..."> <span
-                class="button-text">Redo Tests</span></button>
-    </div>
+    <!-- ── OVERLAY ───────────────────────────────────── -->
+    <div class="overlay" id="overlay" aria-hidden="true"></div>
 
-    <div class="overlay" id="overlay">
-        <img id="loading" src="./imgs/ring-resize.svg" alt="Loading...">
-    </div>
-
-    <div id="timer-bar-container">
+    <!-- ── TIMER BAR ─────────────────────────────────── -->
+    <div id="timer-bar-container" aria-hidden="true">
         <div id="timer-bar"></div>
     </div>
 
-    <div id="gyro-dialog" class="dialog-fullscreen">
+    <!-- ── GYROSCOPE (fullscreen canvas) ─────────────── -->
+    <div id="gyro-dialog" class="dialog-fullscreen" aria-label="Gyroscope test">
         <div id="gyro-instructions" class="dialog-instructions"></div>
         <canvas id="gyro-canvas"></canvas>
-
     </div>
 
-    <div id="color-dialog" class="dialog-fullscreen">
+    <!-- ── COLOR SCREEN (fullscreen) ─────────────────── -->
+    <div id="color-dialog" class="dialog-fullscreen" aria-label="Color screen test">
         <div id="color-screen"
-            style="width: 100%; height: 100%; position: relative; display: flex; justify-content: center; align-items: center;">
+            style="width:100%;height:100%;position:relative;display:flex;justify-content:center;align-items:center;">
             <div id="color-preview-controls" class="preview-controls">
-
                 <div id="color-confirm-buttons" class="button-container">
-                    <button id="color-no" class="action-button"><i data-lucide="x" class="button-icon"></i></button>
-                    <button id="color-yes" class="action-button"><i data-lucide="check"
-                            class="button-icon"></i></button>
+                    <button id="color-no" class="action-button action-button--fail" aria-label="Fail test">
+                        <i class="ri-close-line"></i>
+                    </button>
+                    <button id="color-yes" class="action-button action-button--pass" aria-label="Pass test">
+                        <i class="ri-check-line"></i>
+                    </button>
                 </div>
-                <p id="color-help-text" class="help-text">Tap the screen to hide/show buttons</p>
+                <p id="color-help-text" class="help-text">Tap screen to show or hide controls</p>
             </div>
         </div>
     </div>
 
-    <div id="touch-dialog" class="dialog-fullscreen">
+    <!-- ── TOUCH (fullscreen canvas) ─────────────────── -->
+    <div id="touch-dialog" class="dialog-fullscreen" aria-label="Touch tracking test">
         <div class="touch-canvas" id="touch-canvas">
             <p class="dialog-instructions" id="touch-instructions"></p>
         </div>
     </div>
 
-    <div id="vibration-dialog" class="dialog">
-        <h3>Vibration Test</h3>
-        <p>The device will vibrate when you click the button below. Did you feel it?</p>
-        <button id="vibrate-test">Vibrate</button>
+    <!-- ── VIBRATION (bottom sheet) ──────────────────── -->
+    <div id="vibration-dialog" class="bottom-sheet" aria-label="Vibration test">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+            <i class="ri-vibrate-line sheet-icon" aria-hidden="true"></i>
+            <div>
+                <h3 class="sheet-title">Vibration Test</h3>
+                <p class="sheet-desc">Tap the button below to trigger vibration. Did you feel it?</p>
+            </div>
+        </div>
+        <button id="vibrate-test" class="btn-trigger">
+            <i class="ri-vibrate-line"></i>
+            <span>Vibrate</span>
+        </button>
         <div class="dialog-buttons">
-            <button id="vibration-no" class="button-no"><i data-lucide="x" class="button-icon"></i></button>
-            <button id="vibration-yes" class="button-yes"><i data-lucide="check" class="button-icon"></i></button>
+            <button id="vibration-no" class="btn-result btn-result--fail">
+                <i class="ri-close-line"></i> No
+            </button>
+            <button id="vibration-yes" class="btn-result btn-result--pass">
+                <i class="ri-check-line"></i> Yes
+            </button>
         </div>
     </div>
 
-    <div id="sound-dialog" class="dialog">
-        <h3>Sound Test</h3>
-        <p>A sound will play when you click the button below. Did you hear it?</p>
-        <button id="play-sound">Play Sound</button>
+    <!-- ── SOUND (bottom sheet) ──────────────────────── -->
+    <div id="sound-dialog" class="bottom-sheet" aria-label="Speaker test">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+            <i class="ri-volume-up-line sheet-icon" aria-hidden="true"></i>
+            <div>
+                <h3 class="sheet-title">Speaker Test</h3>
+                <p class="sheet-desc">Play the tone and confirm you can hear it clearly.</p>
+            </div>
+        </div>
+        <button id="play-sound" class="btn-trigger">
+            <i class="ri-play-circle-line"></i>
+            <span>Play Sound</span>
+        </button>
         <div class="dialog-buttons">
-            <button id="sound-no" class="button-no"><i data-lucide="x" class="button-icon"></i></button>
-            <button id="sound-yes" class="button-yes"><i data-lucide="check" class="button-icon"></i></button>
+            <button id="sound-no" class="btn-result btn-result--fail">
+                <i class="ri-close-line"></i> No
+            </button>
+            <button id="sound-yes" class="btn-result btn-result--pass">
+                <i class="ri-check-line"></i> Yes
+            </button>
         </div>
     </div>
 
-    <div id="mic-dialog" class="dialog">
-        <h3>Microphone Test</h3>
-        <p>We'll record 5 seconds of audio and play it back.</p>
-        <canvas id="waveform" width="400" height="100" style="display: none;"></canvas>
-        <div class="timer" id="mic-timer"></div>
-        <button id="start-recording">Start Recording</button>
-        <button id="play-recording" style="display: none;">Play Recording</button>
-        <button id="re-record" style="display:none;">Re-record</button>
+    <!-- ── MICROPHONE (bottom sheet) ─────────────────── -->
+    <div id="mic-dialog" class="bottom-sheet" aria-label="Microphone test">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+            <i class="ri-mic-line sheet-icon" aria-hidden="true"></i>
+            <div>
+                <h3 class="sheet-title">Microphone Test</h3>
+                <p class="sheet-desc">Record 5 seconds of audio, then play it back.</p>
+            </div>
+        </div>
+        <canvas id="waveform" width="400" height="64" style="display:none"></canvas>
+        <div id="mic-timer"></div>
+        <button id="start-recording" class="btn-trigger">
+            <i class="ri-record-circle-line"></i>
+            <span>Start Recording</span>
+        </button>
+        <button id="play-recording" class="btn-trigger" style="display:none">
+            <i class="ri-play-circle-line"></i>
+            <span>Play Recording</span>
+        </button>
+        <button id="re-record" class="btn-trigger" style="display:none">
+            <i class="ri-restart-line"></i>
+            <span>Re-record</span>
+        </button>
         <div class="dialog-buttons">
-            <button id="mic-no" class="button-no"><i data-lucide="x" class="button-icon"></i></button>
-            <button id="mic-yes" class="button-yes"><i data-lucide="check" class="button-icon"></i></button>
+            <button id="mic-no" class="btn-result btn-result--fail">
+                <i class="ri-close-line"></i> No
+            </button>
+            <button id="mic-yes" class="btn-result btn-result--pass">
+                <i class="ri-check-line"></i> Yes
+            </button>
         </div>
     </div>
 
-    <div id="camera-dialog" class="dialog-fullscreen">
+    <!-- ── CAMERA (fullscreen) ───────────────────────── -->
+    <div id="camera-dialog" class="dialog-fullscreen" aria-label="Camera test">
         <video id="camera-preview" autoplay playsinline></video>
+
         <div id="camera-controls" class="camera-controls">
             <button id="capture-button" class="capture-button" aria-label="Take photo">
-                <i data-lucide="camera" class="button-icon"></i>
+                <i class="ri-camera-line"></i>
             </button>
         </div>
 
         <div id="preview-controls" class="preview-controls hidden">
             <div id="button-container" class="button-container">
                 <button id="retake-button" class="action-button" aria-label="Retake photo">
-                    <i data-lucide="rotate-ccw" class="button-icon"></i>
+                    <i class="ri-arrow-go-back-line"></i>
                 </button>
-                <button id="accept-button" class="action-button" aria-label="Accept photo">
-                    <i data-lucide="check" class="button-icon"></i>
+                <button id="accept-button" class="action-button action-button--pass" aria-label="Accept photo">
+                    <i class="ri-check-line"></i>
                 </button>
-                <button id="reject-button" class="action-button" aria-label="Reject photo">
-                    <i data-lucide="x" class="button-icon"></i>
+                <button id="reject-button" class="action-button action-button--fail" aria-label="Reject photo">
+                    <i class="ri-close-line"></i>
                 </button>
             </div>
-            <p id="help-text" class="help-text">Tap the screen to hide/show buttons</p>
+            <p id="help-text" class="help-text">Tap screen to show or hide controls</p>
         </div>
-        <img id="photo-preview" class="photo-preview hidden" />
+
+        <img id="photo-preview" class="photo-preview hidden" alt="">
     </div>
 
     <script type="module" src="./scripts/main.js"></script>
     <script>
-        // Check if service workers are supported
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./scripts/service-worker.js');
             });
         }
     </script>
+
 </body>
 
 </html>

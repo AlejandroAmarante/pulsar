@@ -1,6 +1,4 @@
 export async function getDeviceInfo() {
-  // Get the battery info asynchronously
-
   const getBrowserName = () => {
     const ua = navigator.userAgent;
     if (/Chrome/i.test(ua) && !/Edge|Opera/i.test(ua)) return "Chrome";
@@ -12,91 +10,79 @@ export async function getDeviceInfo() {
     return "Unknown";
   };
 
+  const getPlatform = () => {
+    const ua = navigator.userAgent;
+    if (/Mobi|Android/i.test(ua)) return "Android";
+    if (/Windows Phone/i.test(ua)) return "Windows Phone";
+    if (/iPad|iPhone|iPod/i.test(ua)) return "iOS";
+    if (/Macintosh|Mac OS X/i.test(ua)) return "macOS";
+    if (/Linux/i.test(ua)) return "Linux";
+    if (/Windows NT/i.test(ua)) return "Windows";
+    return "Unknown";
+  };
+
   let batteryInfo = "Unknown";
   if (navigator.getBattery) {
-    const battery = await navigator.getBattery();
-    batteryInfo = `Level: ${(battery.level * 100).toFixed(1)}%, Charging: ${
-      battery.charging ? "Yes" : "No"
-    }`;
+    try {
+      const b = await navigator.getBattery();
+      batteryInfo = `${(b.level * 100).toFixed(0)}% · ${b.charging ? "Charging" : "On battery"}`;
+    } catch (_) {}
   }
 
-  const deviceMemory = navigator.deviceMemory
-    ? `≥ ${navigator.deviceMemory.toFixed(2)} GB`
-    : "Unknown";
-
-  const touchSupport = "ontouchstart" in window ? "Yes" : "No";
+  const conn = navigator.connection;
 
   const info = {
-    Browser: { value: getBrowserName(), icon: "chrome" },
-    "Screen Resolution": {
-      value: `${window.screen.width}x${window.screen.height}`,
-      icon: "monitor",
+    Browser: { value: getBrowserName(), icon: "ri-global-line" },
+    Resolution: {
+      value: `${window.screen.width} × ${window.screen.height}`,
+      icon: "ri-computer-line",
     },
-    "Window Size": {
-      value: `${window.innerWidth}x${window.innerHeight}`,
-      icon: "proportions",
+    Viewport: {
+      value: `${window.innerWidth} × ${window.innerHeight}`,
+      icon: "ri-layout-4-line",
     },
-    "Device Pixel Ratio": {
-      value: window.devicePixelRatio,
-      icon: "maximize",
+    "Pixel Ratio": {
+      value: `${window.devicePixelRatio}x`,
+      icon: "ri-focus-3-line",
     },
-    Platform: {
-      value: (() => {
-        const ua = navigator.userAgent;
-        if (/Mobi|Android/i.test(ua)) return "Android";
-        if (/Windows Phone/i.test(ua)) return "Windows Phone";
-        if (/iPad|iPhone|iPod/i.test(ua)) return "iOS";
-        if (/Macintosh|Mac OS X/i.test(ua)) return "Mac";
-        if (/Linux/i.test(ua)) return "Linux";
-        if (/Windows NT/i.test(ua)) return "Windows";
-        return "Unknown";
-      })(),
-      icon: "monitor-smartphone",
+    Platform: { value: getPlatform(), icon: "ri-smartphone-line" },
+    Network: {
+      value: conn ? conn.type || "Unknown" : "Unknown",
+      icon: "ri-wifi-line",
     },
-    "Network Type": {
-      value: navigator.connection ? navigator.connection.type : "Unknown",
-      icon: "wifi",
-    },
-    "Connection Type": {
-      value: navigator.connection
-        ? navigator.connection.effectiveType
-        : "Unknown",
-      icon: "signal",
+    Connection: {
+      value: conn ? conn.effectiveType || "Unknown" : "Unknown",
+      icon: "ri-signal-cellular-3-line",
     },
     Bandwidth: {
-      value: navigator.connection
-        ? `${navigator.connection.downlink} Mbps`
+      value: conn ? `${conn.downlink} Mbps` : "Unknown",
+      icon: "ri-arrow-up-down-line",
+    },
+    Battery: { value: batteryInfo, icon: "ri-battery-2-charge-line" },
+    Memory: {
+      value: navigator.deviceMemory
+        ? `≥ ${navigator.deviceMemory} GB`
         : "Unknown",
-      icon: "arrow-up-down",
+      icon: "ri-cpu-line",
     },
-    Battery: { value: batteryInfo, icon: "battery-full" },
-    "Device Memory": {
-      value: `${deviceMemory}`,
-      icon: "memory-stick",
+    Touch: {
+      value: "ontouchstart" in window ? "Supported" : "None",
+      icon: "ri-fingerprint-line",
     },
-    "Touch Support": { value: touchSupport, icon: "fingerprint" },
   };
 
   const infoDiv = document.getElementById("device-info");
   infoDiv.innerHTML = "";
 
   for (const [key, { value, icon }] of Object.entries(info)) {
+    const isUnknown = value === "Unknown";
     const row = document.createElement("div");
     row.className = "list-item-row";
-
-    // Add a "greyed-out" class if the value is "Unknown"
-    const isUnknown = value === "Unknown";
-    const valueClass = isUnknown ? "greyed-out" : "";
-
     row.innerHTML = `
-      <i data-lucide="${icon}" class="icon"></i>
-      <div>
-        <span class="label">${key}:</span> 
-        <span class="${valueClass}">${value}</span>
-      </div>
+      <i class="${icon} icon" aria-hidden="true"></i>
+      <span class="label">${key}</span>
+      <span class="value${isUnknown ? " greyed-out" : ""}">${value}</span>
     `;
     infoDiv.appendChild(row);
   }
-
-  lucide.createIcons();
 }

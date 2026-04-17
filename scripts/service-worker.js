@@ -1,3 +1,5 @@
+// service-worker.js
+
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/6.5.0/workbox-sw.js");
 
 workbox.routing.registerRoute(
