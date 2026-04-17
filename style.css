@@ -4,49 +4,51 @@
    Fonts: Plus Jakarta Sans · JetBrains Mono
 ═══════════════════════════════════════════════════════ */
 
-/* ─── DESIGN TOKENS ─────────────────────────────────── */
+/* ─── DESIGN TOKENS (LIGHT MODE ACTIVE) ─────────────────────────────────── */
 :root {
-  /* Surfaces — true neutral, no color tint */
-  --bg-void: #090909;
-  --bg-base: #0e0e0f;
-  --bg-surface: #141416;
-  --bg-raised: #1b1b1e;
-  --bg-input: #111113;
-  --bg-hover: #1e1e22;
+  /* ── SURFACES (LIGHT) ───────────────────────────── */
+  --bg-void: #f7f7f8;
+  --bg-base: #ffffff;
+  --bg-surface: #f3f4f6;
+  --bg-raised: #e9eaee;
+  --bg-input: #ffffff;
+  --bg-hover: #e2e4ea;
 
-  /* Borders */
-  --border-faint: rgba(255, 255, 255, 0.04);
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.17);
+  /* ── BORDERS (LIGHT) ───────────────────────────── */
+  --border-faint: rgba(0, 0, 0, 0.04);
+  --border-subtle: rgba(0, 0, 0, 0.07);
+  --border-default: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.18);
 
-  /* Accent — muted, corporate blue */
+  /* ── ACCENT (unchanged) ────────────────────────── */
   --accent: #8223d2;
   --accent-hover: #a24be6;
   --accent-dim: rgba(75, 127, 207, 0.09);
   --accent-mid: rgba(75, 127, 207, 0.18);
   --accent-fg: #ffffff;
 
-  /* Semantic */
-  --success: #3aaa72;
-  --success-dim: rgba(58, 170, 114, 0.1);
-  --success-ring: rgba(58, 170, 114, 0.2);
-  --error: #cc5f5f;
-  --error-dim: rgba(204, 95, 95, 0.1);
-  --error-ring: rgba(204, 95, 95, 0.2);
+  /* ── SEMANTIC ──────────────────────────────────── */
+  --success: #2f9e67;
+  --success-dim: rgba(47, 158, 103, 0.12);
+  --success-ring: rgba(47, 158, 103, 0.2);
+
+  --error: #d25c5c;
+  --error-dim: rgba(210, 92, 92, 0.12);
+  --error-ring: rgba(210, 92, 92, 0.2);
+
   --warn: #c99236;
-  --warn-dim: rgba(201, 146, 54, 0.1);
+  --warn-dim: rgba(201, 146, 54, 0.12);
 
-  /* Text */
-  --text-primary: #e0e0e3;
-  --text-secondary: #88888f;
-  --text-muted: #3e3e48;
+  /* ── TEXT ──────────────────────────────────────── */
+  --text-primary: #1b1c1f;
+  --text-secondary: #5a5f6a;
+  --text-muted: #9aa0aa;
 
-  /* Typography */
+  /* ── TYPOGRAPHY ────────────────────────────────── */
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
-  /* Radii */
+  /* ── RADII ─────────────────────────────────────── */
   --r-xs: 2px;
   --r-sm: 6px;
   --r-md: 9px;
@@ -54,7 +56,7 @@
   --r-xl: 20px;
   --r-pill: 9999px;
 
-  /* Spacing */
+  /* ── SPACING ───────────────────────────────────── */
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
@@ -65,13 +67,33 @@
   --s8: 32px;
   --s10: 40px;
 
-  /* Motion */
+  /* ── MOTION ────────────────────────────────────── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
   --dur-fast: 110ms;
   --dur-base: 190ms;
   --dur-slow: 300ms;
 }
+
+/* ─── DARK MODE (COMMENTED OUT FOR NOW) ─────────────
+:root {
+  --bg-void: #090909;
+  --bg-base: #0e0e0f;
+  --bg-surface: #141416;
+  --bg-raised: #1b1b1e;
+  --bg-input: #111113;
+  --bg-hover: #1e1e22;
+
+  --border-faint: rgba(255, 255, 255, 0.04);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.17);
+
+  --text-primary: #e0e0e3;
+  --text-secondary: #88888f;
+  --text-muted: #3e3e48;
+}
+──────────────────────────────────────────────────── */
 
 /* ─── RESET ──────────────────────────────────────────── */
 *,
@@ -428,7 +450,7 @@ img {
 
 /* Primary (solid accent) */
 .btn-primary {
-  width: 50%;
+  width: 48.8%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,7 +461,7 @@ img {
   background: var(--accent);
   color: var(--accent-fg);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.02em;
   transition:
