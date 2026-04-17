@@ -23,8 +23,8 @@
   /* ── ACCENT (unchanged) ────────────────────────── */
   --accent: #8223d2;
   --accent-hover: #a24be6;
-  --accent-dim: rgba(75, 127, 207, 0.09);
-  --accent-mid: rgba(75, 127, 207, 0.18);
+  --accent-dim: rgba(130, 35, 210, 0.12);
+  --accent-mid: rgba(130, 35, 210, 0.2);
   --accent-fg: #ffffff;
 
   /* ── SEMANTIC ──────────────────────────────────── */
@@ -259,8 +259,8 @@ img {
   width: 100%;
   height: 100%;
   display: block;
-  filter: drop-shadow(0 0 3px rgba(75, 127, 207, 0.35))
-    drop-shadow(0 0 8px rgba(75, 127, 207, 0.18));
+  filter: drop-shadow(0 0 3px rgba(130, 35, 210 0.35))
+    drop-shadow(0 0 8px rgba(130, 35, 210 0.18));
   opacity: 0.15;
   stroke-dasharray: 140;
   stroke-dashoffset: 140;
@@ -272,8 +272,8 @@ img {
   0% {
     opacity: 0;
     stroke-dashoffset: 140;
-    filter: drop-shadow(0 0 0 rgba(75, 127, 207, 0))
-      drop-shadow(0 0 0 rgba(75, 127, 207, 0));
+    filter: drop-shadow(0 0 0 rgba(130, 35, 210 0))
+      drop-shadow(0 0 0 rgba(130, 35, 210 0));
   }
 
   10% {
@@ -283,15 +283,15 @@ img {
   18% {
     opacity: 1;
     stroke-dashoffset: 70;
-    filter: drop-shadow(0 0 4px rgba(75, 127, 207, 0.45))
-      drop-shadow(0 0 10px rgba(75, 127, 207, 0.22));
+    filter: drop-shadow(0 0 4px rgba(130, 35, 210 0.45))
+      drop-shadow(0 0 10px rgba(130, 35, 210 0.22));
   }
 
   32% {
     opacity: 1;
     stroke-dashoffset: 0;
-    filter: drop-shadow(0 0 5px rgba(75, 127, 207, 0.5))
-      drop-shadow(0 0 12px rgba(75, 127, 207, 0.24));
+    filter: drop-shadow(0 0 5px rgba(130, 35, 210 0.5))
+      drop-shadow(0 0 12px rgba(130, 35, 210 0.24));
   }
 
   45% {
@@ -301,8 +301,8 @@ img {
   58% {
     opacity: 0.12;
     stroke-dashoffset: 0;
-    filter: drop-shadow(0 0 0 rgba(75, 127, 207, 0))
-      drop-shadow(0 0 0 rgba(75, 127, 207, 0));
+    filter: drop-shadow(0 0 0 rgba(130, 35, 210, 0))
+      drop-shadow(0 0 0 rgba(130, 35, 210 0));
   }
 
   72% {
@@ -350,7 +350,7 @@ img {
 /* ─── BLOCK LABEL ────────────────────────────────────── */
 .block-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.14em;
   color: var(--text-muted);
@@ -364,7 +364,7 @@ img {
 .block-label::after {
   content: "";
   flex: 1;
-  height: 1px;
+  height: 2px;
   position: relative;
   background: var(--border-faint);
   transition: background 0.25s var(--ease-out);
@@ -422,14 +422,14 @@ img {
 }
 
 #device-info .list-item-row .icon {
-  font-size: 13px;
+  font-size: 18px;
   color: var(--text-muted);
   text-align: center;
   justify-self: center;
 }
 
 #device-info .list-item-row .label {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -438,7 +438,7 @@ img {
 
 #device-info .list-item-row .value {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 14px;
   color: var(--text-primary);
   text-align: right;
   letter-spacing: 0.01em;
@@ -644,8 +644,8 @@ img {
 
 /* ─── STATUS DOTS ────────────────────────────────────── */
 .status {
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: var(--r-pill);
   flex-shrink: 0;
   transition:
@@ -691,7 +691,7 @@ img {
 
 .test-count {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   letter-spacing: 0.06em;
   flex-shrink: 0;
@@ -724,7 +724,7 @@ img {
 }
 
 #tests .list-item-row span {
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text-secondary);
   letter-spacing: 0.01em;
 }
