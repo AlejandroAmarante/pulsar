@@ -650,7 +650,7 @@ img {
   height: 28px;
   border-radius: var(--r-sm);
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 18px;
   display: flex;
   align-items: center;
