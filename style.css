@@ -107,6 +107,7 @@
 
 html {
   background: var(--bg-void);
+  scroll-behavior: auto;
 }
 
 body {
@@ -124,6 +125,10 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  overflow-anchor: none;
 }
 
 h1,
@@ -1171,7 +1176,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s2);
+  gap: var(--s3);
 }
 
 /* Pending-state name */
