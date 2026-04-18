@@ -7,9 +7,9 @@
 /* ─── DESIGN TOKENS (LIGHT MODE ACTIVE) ─────────────────────────────────── */
 :root {
   /* ── SURFACES (LIGHT) ───────────────────────────── */
-  --bg-void: #f7f7f8;
+  --bg-void: #fbfbfb;
   --bg-base: #ffffff;
-  --bg-surface: #f3f4f6;
+  --bg-surface: #f9fafc;
   --bg-raised: #e9eaee;
   --bg-input: #ffffff;
   --bg-hover: #e2e4ea;
@@ -127,7 +127,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
+html,
+body {
   overflow-anchor: none;
 }
 
@@ -459,7 +460,7 @@ img {
 
 /* Primary (solid accent) */
 .btn-primary {
-  width: 48.8%;
+  width: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -844,9 +845,9 @@ img {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 22px;
-  height: 22px;
-  border: 1.5px solid var(--border-default);
+  width: 96px;
+  height: 96px;
+  border: 10px solid var(--border-default);
   border-top-color: var(--accent);
   border-radius: var(--r-pill);
   animation: overlaySpin 0.7s linear infinite;
