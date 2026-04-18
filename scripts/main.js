@@ -88,8 +88,15 @@ class TestRunner {
     this.els.startButton.addEventListener("click", () =>
       this.resetAndRunTests(),
     );
-  }
 
+    // Per-row individual test trigger
+    this.els.testsContainer.addEventListener("click", (e) => {
+      const row = e.target.closest("[data-test-index]");
+      if (!row || this.els.startButton.disabled) return;
+      const index = parseInt(row.dataset.testIndex, 10);
+      if (!isNaN(index)) this.runSingleTest(index);
+    });
+  }
   // ── Button state ──────────────────────────────────────────────────────────
 
   updateButtonState(isRunning, testName = "") {
@@ -101,7 +108,7 @@ class TestRunner {
       btnLabel.textContent = testName || "Running…";
     } else {
       startButton.classList.remove("btn--loading");
-      btnLabel.textContent = "Run Diagnostics";
+      btnLabel.textContent = "Run Tests";
     }
   }
 
@@ -135,7 +142,7 @@ class TestRunner {
   // ── Test flow ─────────────────────────────────────────────────────────────
 
   async startTests() {
-    this.els.btnLabel.textContent = "Run Diagnostics";
+    this.els.btnLabel.textContent = "Run Tests";
     this.els.startButton.querySelector(".btn-icon").className =
       "ri-play-fill btn-icon";
     this.prepareTestEnvironment();
@@ -203,6 +210,48 @@ class TestRunner {
     }
   }
 
+  async runSingleTest(index) {
+    const { name, testFunction } = TEST_CONFIGURATIONS[index];
+
+    this.els.overlay.style.display = "flex";
+    this.updateButtonState(true, name);
+    this.hideAllDialogs();
+    this.progressTimer.start();
+
+    const result = await this.executeSingleTest(testFunction, name);
+
+    this.progressTimer.stop();
+    this.els.overlay.style.display = "none";
+    this.hideAllDialogs();
+    this.updateButtonState(false);
+
+    const row = this.els.testsContainer.querySelector(
+      `[data-test-index="${index}"]`,
+    );
+    if (!row) return;
+
+    row.classList.add("result-row");
+    row.innerHTML = `
+    <div class="status ${result.success ? "success" : "failure"}"></div>
+    <div>
+      <strong>${result.name}</strong>
+      <span class="result-detail">${result.details}</span>
+    </div>
+    <button class="btn-row-action" data-test-index="${index}" aria-label="Re-run ${result.name}">
+      <i class="ri-restart-line"></i>
+    </button>
+  `;
+
+    // Add this — update the bar after the row's status dot is in the DOM
+    const completed = document.querySelectorAll(
+      "#tests .status.success, #tests .status.failure",
+    ).length;
+    this.els.testsLabel.classList.add("active");
+    this.updateTestCount(completed, TEST_CONFIGURATIONS.length);
+
+    this.els.btnLabel.textContent = "Run Tests";
+  }
+
   createTimeoutPromise() {
     return new Promise((_, reject) =>
       setTimeout(
@@ -223,14 +272,19 @@ class TestRunner {
       this.els.testCount.textContent = `${completed} / ${total}`;
     }
 
-    // Count passed tests so far
     const passed = document.querySelectorAll("#tests .status.success").length;
+    const failed = document.querySelectorAll("#tests .status.failure").length;
 
     const successPct = (passed / total) * 100;
+    const completedPct = ((passed + failed) / total) * 100;
 
     this.els.testsLabel.style.setProperty(
       "--success-progress",
       `${successPct}%`,
+    );
+    this.els.testsLabel.style.setProperty(
+      "--completed-progress",
+      `${completedPct}%`,
     );
   }
 
@@ -261,16 +315,19 @@ class TestRunner {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }
 
-  createResultHTML(result) {
+  createResultHTML(result, index) {
     return `
-      <div class="list-item-row result-row">
-        <div class="status ${result.success ? "success" : "failure"}"></div>
-        <div>
-          <strong>${result.name}</strong>
-          <span class="result-detail">${result.details}</span>
-        </div>
+    <div class="list-item-row result-row" data-test-index="${index}">
+      <div class="status ${result.success ? "success" : "failure"}"></div>
+      <div>
+        <strong>${result.name}</strong>
+        <span class="result-detail">${result.details}</span>
       </div>
-    `;
+      <button class="btn-row-action" data-test-index="${index}" aria-label="Re-run ${result.name}">
+        <i class="ri-restart-line"></i>
+      </button>
+    </div>
+  `;
   }
 
   // ── Reset ─────────────────────────────────────────────────────────────────
@@ -293,12 +350,15 @@ class TestRunner {
   initializeTestElements() {
     const total = TEST_CONFIGURATIONS.length;
     this.els.testsContainer.innerHTML = TEST_CONFIGURATIONS.map(
-      ({ name }) => `
-        <div class="list-item-row">
-          <div class="status pending"></div>
-          <span>${name}</span>
-        </div>
-      `,
+      ({ name }, index) => `
+      <div class="list-item-row" data-test-index="${index}">
+        <div class="status pending"></div>
+        <span>${name}</span>
+        <button class="btn-row-action" data-test-index="${index}" aria-label="Run ${name}">
+          <i class="ri-play-fill"></i>
+        </button>
+      </div>
+    `,
     ).join("");
 
     if (this.els.testCount) {

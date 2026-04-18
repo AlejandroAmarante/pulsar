@@ -245,9 +245,9 @@ img {
   background: repeating-linear-gradient(
     0deg,
     transparent,
-    transparent 3px,
-    rgba(0, 0, 0, 0.1) 3px,
-    rgba(0, 0, 0, 0.1) 4px
+    transparent 10px,
+    rgba(0, 0, 0, 0.05) 10px,
+    rgba(0, 0, 0, 0.05) 11px
   );
   z-index: 2;
   pointer-events: none;
@@ -374,10 +374,12 @@ img {
 #tests-label.active::after {
   background: linear-gradient(
     to right,
-    var(--accent) 0%,
-    var(--accent) var(--success-progress, 0%),
+    var(--success) 0%,
+    var(--success) var(--success-progress, 0%),
     var(--error) var(--success-progress, 0%),
-    var(--error) 100%
+    var(--error) var(--completed-progress, 0%),
+    var(--border-faint) var(--completed-progress, 0%),
+    var(--border-faint) 100%
   );
 }
 
@@ -407,10 +409,10 @@ img {
 }
 
 .list-item-row {
-  display: grid;
-  grid-template-columns: 20px 1fr auto;
+  display: flex;
   align-items: center;
-  gap: var(--s2);
+  justify-content: space-between;
+  gap: var(--s3);
   padding: 7px var(--s2);
   border-radius: var(--r-sm);
   transition: background var(--dur-fast);
@@ -443,7 +445,7 @@ img {
   text-align: right;
   letter-spacing: 0.01em;
   white-space: nowrap;
-  margin-left: var(--s2);
+  margin-left: auto;
 }
 
 /* ─── BUTTONS ────────────────────────────────────────── */
@@ -642,6 +644,49 @@ img {
   font-size: 16px;
 }
 
+/* ─── PER-TEST ROW ACTION BUTTON ────────────────────── */
+.btn-row-action {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition:
+    background var(--dur-fast),
+    border-color var(--dur-fast),
+    color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-snap);
+  align-self: center;
+}
+
+.btn-row-action:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.list-item-row:hover .btn-row-action {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.btn-row-action:active {
+  transform: scale(0.91);
+  background: var(--bg-raised);
+}
+
+.btn-row-action:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
 /* ─── STATUS DOTS ────────────────────────────────────── */
 .status {
   width: 10px;
@@ -651,6 +696,7 @@ img {
   transition:
     background var(--dur-base),
     box-shadow var(--dur-base);
+  align-self: center;
 }
 
 .status.pending {
@@ -721,6 +767,7 @@ img {
 
 #tests .list-item-row {
   padding: 8px var(--s2);
+  cursor: pointer;
 }
 
 #tests .list-item-row span {
@@ -735,16 +782,11 @@ img {
   padding: 10px var(--s2) !important;
 }
 
-.result-row .status {
-  margin-top: 5px;
-}
-
 .result-row strong {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   display: block;
-  margin-bottom: 2px;
 }
 
 .result-detail {
@@ -795,7 +837,13 @@ img {
   border: 1.5px solid var(--border-default);
   border-top-color: var(--accent);
   border-radius: var(--r-pill);
-  animation: spin 0.7s linear infinite;
+  animation: overlaySpin 0.7s linear infinite;
+}
+
+@keyframes overlaySpin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 /* ─── FULLSCREEN DIALOGS ─────────────────────────────── */
@@ -1029,7 +1077,7 @@ img {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--text-primary);
+  color: white;
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
