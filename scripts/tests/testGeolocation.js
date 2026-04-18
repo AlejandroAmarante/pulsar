@@ -1,29 +1,42 @@
+/**
+ * Geolocation Test
+ *
+ *   API absent        → fail
+ *   Position acquired → success
+ *   Permission denied → inconclusive (can't test hardware without permission)
+ *   Other error       → inconclusive (signal/environment issue, not hardware fault)
+ */
 export async function testGeolocation() {
-  return new Promise((resolve) => {
-    if (!("geolocation" in navigator)) {
-      resolve({
-        name: "Geolocation",
-        success: false,
-        details: "Geolocation API not supported",
-      });
-      return;
-    }
+  if (!("geolocation" in navigator)) {
+    return {
+      name: "Geolocation",
+      status: "fail",
+      details: "Geolocation API not supported",
+    };
+  }
 
+  return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
-      () => {
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
         resolve({
           name: "Geolocation",
-          success: true,
-          details: "Geolocation access granted",
+          status: "success",
+          details: `Position acquired — accuracy ±${Math.round(accuracy)}m`,
         });
       },
-      () => {
+      (error) => {
+        // GeolocationPositionError codes: 1=PERMISSION_DENIED, 2=UNAVAILABLE, 3=TIMEOUT
+        const isPermissionDenied = error.code === 1;
         resolve({
           name: "Geolocation",
-          success: false,
-          details: "Geolocation access denied",
+          status: "inconclusive",
+          details: isPermissionDenied
+            ? "Location permission denied — cannot verify hardware"
+            : `Location unavailable: ${error.message}`,
         });
-      }
+      },
+      { timeout: 10_000, maximumAge: 30_000 },
     );
   });
 }

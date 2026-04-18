@@ -1,3 +1,11 @@
+/**
+ * Color Screen Test
+ *
+ * User confirms each color visually.
+ *   All pass  → success
+ *   Any fail  → fail
+ * No inconclusive path here — user is the sensor.
+ */
 export async function testColorScreens() {
   return new Promise((resolve) => {
     const colorDialog = document.getElementById("color-dialog");
@@ -7,70 +15,85 @@ export async function testColorScreens() {
     const previewControls = document.getElementById("color-preview-controls");
     const yesButton = document.getElementById("color-yes");
     const noButton = document.getElementById("color-no");
-    const colors = [
+
+    const COLORS = [
       { name: "White", value: "#ffffff" },
       { name: "Black", value: "#000000" },
       { name: "Red", value: "#ff0000" },
       { name: "Green", value: "#00ff00" },
       { name: "Blue", value: "#0000ff" },
     ];
-    let currentColorIndex = 0;
+
+    let currentIndex = 0;
     const failedColors = [];
     let controlsVisible = true;
 
-    function setupColorTest() {
+    function showColor(index) {
+      colorScreen.style.backgroundColor = COLORS[index].value;
       colorDialog.style.display = "block";
-      colorScreen.style.backgroundColor = colors[currentColorIndex].value;
 
-      // Remove previous event listeners to reset toggle state
-      colorScreen.removeEventListener("click", toggleControls);
-      colorScreen.addEventListener("click", toggleControls);
+      // Reset controls visibility each new colour
+      controlsVisible = true;
+      confirmButtons.classList.remove("controls-hidden");
+      if (helpText) helpText.classList.remove("help-text-hidden");
+      if (previewControls)
+        previewControls.classList.remove("preview-controls-hidden");
     }
 
     function toggleControls() {
       controlsVisible = !controlsVisible;
       confirmButtons.classList.toggle("controls-hidden", !controlsVisible);
-      helpText.classList.toggle("help-text-hidden", !controlsVisible);
-      previewControls.classList.toggle("preview-controls-hidden", !controlsVisible);
+      if (helpText)
+        helpText.classList.toggle("help-text-hidden", !controlsVisible);
+      if (previewControls)
+        previewControls.classList.toggle(
+          "preview-controls-hidden",
+          !controlsVisible,
+        );
     }
 
-    function handleColorTestResponse(passed) {
-      if (!passed) {
-        failedColors.push(colors[currentColorIndex].name);
-      }
+    function advance(passed) {
+      if (!passed) failedColors.push(COLORS[currentIndex].name);
+      currentIndex++;
 
-      currentColorIndex++;
-      if (currentColorIndex >= colors.length) {
+      if (currentIndex >= COLORS.length) {
+        cleanup();
         if (failedColors.length === 0) {
           resolve({
             name: "Color Screen Test",
-            success: true,
-            details: "All color screens tested successfully",
+            status: "success",
+            details: "All colours displayed correctly",
           });
         } else {
           resolve({
             name: "Color Screen Test",
-            success: false,
-            details: `Defects found in: ${failedColors.join(", ")} screen(s)`,
+            status: "fail",
+            details: `Defects reported on: ${failedColors.join(", ")}`,
           });
         }
-        colorDialog.style.display = "none";
         return;
       }
-
-      setupColorTest();
+      showColor(currentIndex);
     }
 
-    function onYesClick() {
-      handleColorTestResponse(true);
+    function cleanup() {
+      colorDialog.style.display = "none";
+      colorScreen.removeEventListener("click", toggleControls);
+      yesButton.removeEventListener("click", onYes);
+      noButton.removeEventListener("click", onNo);
     }
 
-    function onNoClick() {
-      handleColorTestResponse(false);
+    function onYes() {
+      advance(true);
+    }
+    function onNo() {
+      advance(false);
     }
 
-    yesButton.addEventListener("click", onYesClick);
-    noButton.addEventListener("click", onNoClick);
-    setupColorTest();
+    colorScreen.addEventListener("click", toggleControls);
+    yesButton.addEventListener("click", onYes);
+    noButton.addEventListener("click", onNo);
+
+    showColor(0);
   });
 }

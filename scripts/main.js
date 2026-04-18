@@ -1,7 +1,7 @@
 import { getDeviceInfo } from "./deviceInfo.js";
 import { testGyroscope } from "./tests/testGyroscope.js";
 import { testColorScreens } from "./tests/testScreenColor.js";
-import { testTouchTracking } from "./tests/testTouch.js";
+import { testTouchTracking, cleanupTouchTest } from "./tests/testTouch.js";
 import {
   testShortVibration,
   testMediumVibration,
@@ -63,6 +63,18 @@ const TEST_CONFIGURATIONS = Object.values(TEST_CATEGORIES).flatMap((cat) =>
   Object.values(cat),
 );
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Maps a result status to the CSS class used on .status dots.
+ * @param {'success'|'fail'|'inconclusive'} status
+ */
+function toStatusClass(status) {
+  if (status === "success") return "success";
+  if (status === "fail") return "failure";
+  return "inconclusive";
+}
+
 // ─── TestRunner ───────────────────────────────────────────────────────────────
 class TestRunner {
   constructor() {
@@ -84,12 +96,11 @@ class TestRunner {
   }
 
   bindEventListeners() {
-    this.els.startButton.addEventListener("click", () => this.startTests());
     this.els.startButton.addEventListener("click", () =>
-      this.resetAndRunTests(),
+      this.handleStartClick(),
     );
 
-    // Per-row individual test trigger
+    // Clicking anywhere on a row triggers that test
     this.els.testsContainer.addEventListener("click", (e) => {
       const row = e.target.closest("[data-test-index]");
       if (!row || this.els.startButton.disabled) return;
@@ -99,10 +110,14 @@ class TestRunner {
   }
   // ── Button state ──────────────────────────────────────────────────────────
 
+  handleStartClick() {
+    this.resetTestEnvironment();
+    this.startTests();
+  }
+
   updateButtonState(isRunning, testName = "") {
     const { startButton, btnLabel } = this.els;
     startButton.disabled = isRunning;
-
     if (isRunning) {
       startButton.classList.add("btn--loading");
       btnLabel.textContent = testName || "Running…";
@@ -142,22 +157,9 @@ class TestRunner {
   // ── Test flow ─────────────────────────────────────────────────────────────
 
   async startTests() {
-    this.els.btnLabel.textContent = "Run Tests";
-    this.els.startButton.querySelector(".btn-icon").className =
-      "ri-play-fill btn-icon";
-    this.prepareTestEnvironment();
+    this.els.overlay.style.display = "flex";
     const results = await this.executeAllTests();
     this.displayResults(results);
-  }
-
-  async resetAndRunTests() {
-    this.resetTestEnvironment();
-    await this.startTests();
-  }
-
-  prepareTestEnvironment() {
-    this.els.overlay.style.display = "flex";
-    this.initializeTestElements();
   }
 
   async executeAllTests() {
@@ -178,10 +180,9 @@ class TestRunner {
       results.push(result);
       this.updateTestCount(index + 1, total);
 
-      // Update status dot for completed test
       const statusDots = document.querySelectorAll("#tests .status");
       if (statusDots[index]) {
-        this.updateStatusIndicator(statusDots[index], result.success);
+        statusDots[index].className = `status ${toStatusClass(result.status)}`;
       }
     }
 
@@ -190,21 +191,35 @@ class TestRunner {
     return results;
   }
 
+  /**
+   * Runs one test function, normalises the result to the three-state system,
+   * and catches timeouts / thrown errors as inconclusive.
+   */
   async executeSingleTest(testFunction, testName) {
     try {
       const result = await Promise.race([
         testFunction(),
         this.createTimeoutPromise(),
       ]);
+
+      // Support legacy boolean `success` field from any un-migrated tests
+      const status =
+        result?.status ??
+        (result?.success === true
+          ? "success"
+          : result?.success === false
+            ? "fail"
+            : "inconclusive");
+
       return {
         name: testName,
-        success: true,
-        details: result?.details || "Test passed",
+        status,
+        details: result?.details || "Test completed",
       };
     } catch (error) {
       return {
         name: testName,
-        success: false,
+        status: "inconclusive",
         details: this.formatErrorMessage(error),
       };
     }
@@ -231,24 +246,21 @@ class TestRunner {
     if (!row) return;
 
     row.classList.add("result-row");
+    row.setAttribute("aria-label", `Re-run ${result.name}`);
     row.innerHTML = `
-    <div class="status ${result.success ? "success" : "failure"}"></div>
-    <div>
-      <strong>${result.name}</strong>
-      <span class="result-detail">${result.details}</span>
-    </div>
-    <button class="btn-row-action" data-test-index="${index}" aria-label="Re-run ${result.name}">
-      <i class="ri-restart-line"></i>
-    </button>
-  `;
+  <div class="status ${toStatusClass(result.status)}"></div>
+  <div>
+    <strong>${result.name}</strong>
+    <span class="result-detail">${result.details}</span>
+  </div>
+  <i class="ri-restart-line row-icon"></i>
+`;
 
-    // Add this — update the bar after the row's status dot is in the DOM
     const completed = document.querySelectorAll(
-      "#tests .status.success, #tests .status.failure",
+      "#tests .status.success, #tests .status.failure, #tests .status.inconclusive",
     ).length;
     this.els.testsLabel.classList.add("active");
     this.updateTestCount(completed, TEST_CONFIGURATIONS.length);
-
     this.els.btnLabel.textContent = "Run Tests";
   }
 
@@ -263,9 +275,11 @@ class TestRunner {
 
   formatErrorMessage(error) {
     return error.message === "Test timed out"
-      ? `Timed out after ${TEST_DURATION}s`
-      : error.message;
+      ? `Timed out after ${TEST_DURATION}s — result inconclusive`
+      : `Error: ${error.message}`;
   }
+
+  // ── Progress bar ──────────────────────────────────────────────────────────
 
   updateTestCount(completed, total) {
     if (this.els.testCount) {
@@ -274,13 +288,22 @@ class TestRunner {
 
     const passed = document.querySelectorAll("#tests .status.success").length;
     const failed = document.querySelectorAll("#tests .status.failure").length;
+    const inconclusive = document.querySelectorAll(
+      "#tests .status.inconclusive",
+    ).length;
 
+    // Progress bar: green | yellow | red | grey
     const successPct = (passed / total) * 100;
-    const completedPct = ((passed + failed) / total) * 100;
+    const inconclusivePct = ((passed + inconclusive) / total) * 100;
+    const completedPct = ((passed + failed + inconclusive) / total) * 100;
 
     this.els.testsLabel.style.setProperty(
       "--success-progress",
       `${successPct}%`,
+    );
+    this.els.testsLabel.style.setProperty(
+      "--inconclusive-progress",
+      `${inconclusivePct}%`,
     );
     this.els.testsLabel.style.setProperty(
       "--completed-progress",
@@ -288,44 +311,45 @@ class TestRunner {
     );
   }
 
-  updateStatusIndicator(indicator, success) {
-    indicator.className = `status ${success ? "success" : "failure"}`;
-  }
-
   // ── Results ───────────────────────────────────────────────────────────────
 
   displayResults(results) {
     const { testsLabel, testsContainer } = this.els;
     if (testsLabel) testsLabel.textContent = "Results";
-
     this.els.testsLabel.classList.add("active");
 
-    testsContainer.innerHTML = results.map(this.createResultHTML).join("");
+    testsContainer.innerHTML = results
+      .map((result, index) => this.createResultHTML(result, index))
+      .join("");
 
     this.updateButtonState(false);
     this.els.btnLabel.textContent = "Re-run Tests";
-    this.els.startButton.querySelector(".btn-icon").className =
-      "ri-restart-line btn-icon";
+    const btnIcon = this.els.startButton.querySelector(".btn-icon");
+    if (btnIcon) btnIcon.className = "ri-restart-line btn-icon";
 
-    const passed = results.filter((r) => r.success).length;
+    const passed = results.filter((r) => r.status === "success").length;
+    const inconclusive = results.filter(
+      (r) => r.status === "inconclusive",
+    ).length;
     if (this.els.testCount) {
-      this.els.testCount.textContent = `${passed} / ${results.length} passed`;
+      this.els.testCount.textContent = `${passed} passed · ${inconclusive} inconclusive · ${results.length - passed - inconclusive} failed`;
     }
+
+    // Sync the progress bar to final tallies
+    this.updateTestCount(results.length, results.length);
 
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }
 
   createResultHTML(result, index) {
     return `
-    <div class="list-item-row result-row" data-test-index="${index}">
-      <div class="status ${result.success ? "success" : "failure"}"></div>
+    <div class="list-item-row result-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
+      <div class="status ${toStatusClass(result.status)}"></div>
       <div>
         <strong>${result.name}</strong>
         <span class="result-detail">${result.details}</span>
       </div>
-      <button class="btn-row-action" data-test-index="${index}" aria-label="Re-run ${result.name}">
-        <i class="ri-restart-line"></i>
-      </button>
+      <i class="ri-restart-line row-icon"></i>
     </div>
   `;
   }
@@ -334,13 +358,10 @@ class TestRunner {
 
   resetTestEnvironment() {
     const { testsLabel, testCount } = this.els;
-
-    redoButton.style.display = "none";
     if (testsLabel) testsLabel.textContent = "Tests";
-
-    this.initializeTestElements();
     if (testCount) testCount.textContent = "";
 
+    this.initializeTestElements();
     this.cleanupTests();
     this.hideAllDialogs();
     this.els.testsLabel.classList.remove("active");
@@ -351,27 +372,23 @@ class TestRunner {
     const total = TEST_CONFIGURATIONS.length;
     this.els.testsContainer.innerHTML = TEST_CONFIGURATIONS.map(
       ({ name }, index) => `
-      <div class="list-item-row" data-test-index="${index}">
+      <div class="list-item-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${name}">
         <div class="status pending"></div>
         <span>${name}</span>
-        <button class="btn-row-action" data-test-index="${index}" aria-label="Run ${name}">
-          <i class="ri-play-fill"></i>
-        </button>
+        <i class="ri-play-fill row-icon"></i>
       </div>
     `,
     ).join("");
 
-    if (this.els.testCount) {
-      this.els.testCount.textContent = `0 / ${total}`;
-    }
+    if (this.els.testCount) this.els.testCount.textContent = `0 / ${total}`;
 
     this.els.testsLabel.style.setProperty("--success-progress", "0%");
+    this.els.testsLabel.style.setProperty("--inconclusive-progress", "0%");
+    this.els.testsLabel.style.setProperty("--completed-progress", "0%");
   }
 
   cleanupTests() {
-    if (typeof cleanupTouchTest === "function") {
-      cleanupTouchTest();
-    }
+    cleanupTouchTest();
   }
 
   hideAllDialogs() {

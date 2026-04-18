@@ -1,106 +1,117 @@
-// Sound Test Setup
-let audioContext;
+/**
+ * Sound Tests
+ *
+ *   AudioContext unavailable → inconclusive
+ *   User confirms hearing    → success
+ *   User denies hearing      → fail
+ */
 
-// Initialize the audio context
-function initAudio() {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let audioContext = null;
+
+function getAudioContext() {
+  if (!audioContext || audioContext.state === "closed") {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return null;
+    audioContext = new Ctor();
+  }
+  return audioContext;
 }
 
-// Play a test sound at a given frequency
-function playTestSound(frequency) {
-  if (!audioContext) initAudio();
+function playTone(frequency, durationSec = 1.2) {
+  const ctx = getAudioContext();
+  if (!ctx) return false;
 
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
+  // Resume context if suspended (autoplay policy)
+  if (ctx.state === "suspended") ctx.resume();
 
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
 
-  oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
 
-  gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(
-    0.01,
-    audioContext.currentTime + 1
-  );
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
 
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 1);
+  // Smooth ramp to avoid clicks
+  gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationSec);
+
+  oscillator.start(ctx.currentTime);
+  oscillator.stop(ctx.currentTime + durationSec);
+
+  return true;
 }
 
-// Test low frequency
-export async function testLowFrequency() {
-  const result = await testSingleFrequency("Low Frequency", 200);
-  return {
-    name: "Low Frequency Sound Test",
-    success: result.success,
-    details: result.details,
-  };
-}
+async function testSingleFrequency(label, frequency) {
+  if (!(window.AudioContext || window.webkitAudioContext)) {
+    return {
+      name: label,
+      status: "inconclusive",
+      details: "Web Audio API not supported — cannot play test tone",
+    };
+  }
 
-// Test mid frequency
-export async function testMidFrequency() {
-  const result = await testSingleFrequency("Mid Frequency", 1000);
-  return {
-    name: "Mid Frequency Sound Test",
-    success: result.success,
-    details: result.details,
-  };
-}
-
-// Test high frequency
-export async function testHighFrequency() {
-  const result = await testSingleFrequency("High Frequency", 4000);
-  return {
-    name: "High Frequency Sound Test",
-    success: result.success,
-    details: result.details,
-  };
-}
-
-// Test a single frequency
-async function testSingleFrequency(name, frequency) {
   return new Promise((resolve) => {
     const dialog = document.getElementById("sound-dialog");
-    const overlay = document.getElementById("overlay");
-    dialog.style.display = "flex";
-
-    // Update dialog content for current frequency test
     const title = dialog.querySelector("h3");
     const description = dialog.querySelector("p");
-    title.textContent = `Sound Test - ${name}`;
-    description.textContent = `A ${name} sound will play when you click the button below. Did you hear it?`;
-
     const playButton = document.getElementById("play-sound");
     const yesButton = document.getElementById("sound-yes");
     const noButton = document.getElementById("sound-no");
 
-    // Disable "Yes" and "No" buttons initially
+    dialog.style.display = "flex";
+    title.textContent = `Sound Test — ${label}`;
+    description.textContent = `Press Play to hear the ${label.toLowerCase()} tone, then confirm whether you heard it.`;
+
     yesButton.disabled = true;
     noButton.disabled = true;
 
-    // Remove existing event listeners
-    const newPlayButton = playButton.cloneNode(true);
-    playButton.parentNode.replaceChild(newPlayButton, playButton);
+    // Clone play button to clear any previous listeners
+    const freshPlay = playButton.cloneNode(true);
+    playButton.parentNode.replaceChild(freshPlay, playButton);
 
-    newPlayButton.addEventListener("click", () => {
-      playTestSound(frequency);
-
-      // Enable "Yes" and "No" buttons after playing the sound
-      yesButton.disabled = false;
-      noButton.disabled = false;
+    freshPlay.addEventListener("click", () => {
+      const played = playTone(frequency);
+      if (played) {
+        yesButton.disabled = false;
+        noButton.disabled = false;
+      } else {
+        // AudioContext failed at runtime
+        resolve({
+          name: label,
+          status: "inconclusive",
+          details: "Audio context could not be created",
+        });
+        dialog.style.display = "none";
+      }
     });
 
-    function handleResponse(heard) {
+    function respond(heard) {
       dialog.style.display = "none";
+      yesButton.onclick = null;
+      noButton.onclick = null;
       resolve({
-        name: name,
-        success: heard,
-        details: `${name}: ${heard ? "Heard" : "Not heard"}`,
+        name: label,
+        status: heard ? "success" : "fail",
+        details: heard ? `${label} tone heard` : `${label} tone not heard`,
       });
     }
 
-    yesButton.onclick = () => handleResponse(true);
-    noButton.onclick = () => handleResponse(false);
+    yesButton.onclick = () => respond(true);
+    noButton.onclick = () => respond(false);
   });
+}
+
+export async function testLowFrequency() {
+  return testSingleFrequency("Low Frequency (200 Hz)", 200);
+}
+
+export async function testMidFrequency() {
+  return testSingleFrequency("Mid Frequency (1 kHz)", 1000);
+}
+
+export async function testHighFrequency() {
+  return testSingleFrequency("High Frequency (4 kHz)", 4000);
 }

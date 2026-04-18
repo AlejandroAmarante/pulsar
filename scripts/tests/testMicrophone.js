@@ -1,8 +1,11 @@
-let mediaRecorder;
-let audioChunks = [];
-let audioBlob;
-let audioUrl;
-
+/**
+ * Microphone Test
+ *
+ *   Permission denied → inconclusive
+ *   Other error       → fail
+ *   Playback confirmed → success
+ *   Playback denied   → fail
+ */
 export async function testMicrophone() {
   return new Promise((resolve) => {
     const dialog = document.getElementById("mic-dialog");
@@ -11,19 +14,21 @@ export async function testMicrophone() {
     const yesButton = document.getElementById("mic-yes");
     const noButton = document.getElementById("mic-no");
     const reRecordButton = document.getElementById("re-record");
-    const timer = document.getElementById("mic-timer");
+    const timerEl = document.getElementById("mic-timer");
     const canvas = document.getElementById("waveform");
     const canvasCtx = canvas.getContext("2d");
 
     dialog.style.display = "flex";
 
-    let countdown;
-    let stream;
-    let analyser;
-    let audioContext;
-    let animationId;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioUrl = null;
+    let audioContext = null;
+    let animationId = null;
+    let countdown = null;
+    let stream = null;
 
-    function resetState() {
+    function resetUI() {
       startButton.style.display = "block";
       startButton.disabled = false;
       playButton.style.display = "none";
@@ -31,105 +36,107 @@ export async function testMicrophone() {
       noButton.style.display = "none";
       reRecordButton.style.display = "none";
       canvas.style.display = "none";
-      timer.textContent = "";
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      timerEl.textContent = "";
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        audioUrl = null;
+      }
       if (audioContext) {
         audioContext.close();
+        audioContext = null;
       }
       cancelAnimationFrame(animationId);
     }
 
-    function drawWaveform() {
+    function drawWaveform(analyser) {
       const bufferLength = analyser.fftSize;
       const dataArray = new Uint8Array(bufferLength);
-      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+      const sliceWidth = canvas.width / bufferLength;
 
       function draw() {
         analyser.getByteTimeDomainData(dataArray);
-        canvasCtx.fillStyle = "rgb(240, 240, 240)";
+        canvasCtx.fillStyle = "rgb(240,240,240)";
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
         canvasCtx.lineWidth = 2;
         canvasCtx.strokeStyle = "#8223d2";
         canvasCtx.beginPath();
 
-        const sliceWidth = (canvas.width * 1.0) / bufferLength;
         let x = 0;
-
         for (let i = 0; i < bufferLength; i++) {
-          const v = dataArray[i] / 128.0;
-          const y = (v * canvas.height) / 2;
-
-          if (i === 0) {
-            canvasCtx.moveTo(x, y);
-          } else {
-            canvasCtx.lineTo(x, y);
-          }
-
+          const y = ((dataArray[i] / 128) * canvas.height) / 2;
+          i === 0 ? canvasCtx.moveTo(x, y) : canvasCtx.lineTo(x, y);
           x += sliceWidth;
         }
-
         canvasCtx.lineTo(canvas.width, canvas.height / 2);
         canvasCtx.stroke();
-
         animationId = requestAnimationFrame(draw);
       }
-
       draw();
+    }
+
+    function done(status, details) {
+      clearInterval(countdown);
+      cancelAnimationFrame(animationId);
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      if (audioContext) audioContext.close();
+      dialog.style.display = "none";
+      resolve({ name: "Microphone", status, details });
     }
 
     startButton.addEventListener("click", async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaStreamSource(stream);
-
+        const analyser = audioContext.createAnalyser();
         analyser.fftSize = 2048;
-        source.connect(analyser);
+        audioContext.createMediaStreamSource(stream).connect(analyser);
 
         canvas.style.display = "block";
-        drawWaveform();
+        drawWaveform(analyser);
 
-        mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
-
-        mediaRecorder.addEventListener("dataavailable", (event) => {
-          audioChunks.push(event.data);
-        });
-
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.addEventListener("dataavailable", (e) =>
+          audioChunks.push(e.data),
+        );
         mediaRecorder.addEventListener("stop", () => {
-          audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-          audioUrl = URL.createObjectURL(audioBlob);
-          playButton.style.display = "block";
-          startButton.style.display = "none";
-          reRecordButton.style.display = "block";
-          timer.textContent = "Recording complete";
-          stream.getTracks().forEach((track) => track.stop());
+          const blob = new Blob(audioChunks, { type: "audio/wav" });
+          audioUrl = URL.createObjectURL(blob);
+
           cancelAnimationFrame(animationId);
           canvas.style.display = "none";
+          startButton.style.display = "none";
+          playButton.style.display = "block";
+          reRecordButton.style.display = "block";
+          timerEl.textContent = "Recording complete — press Play to review";
+
+          stream.getTracks().forEach((t) => t.stop());
         });
 
         mediaRecorder.start();
         startButton.disabled = true;
-        let timeLeft = 5;
-        timer.textContent = `Recording: ${timeLeft} seconds`;
 
+        let timeLeft = 5;
+        timerEl.textContent = `Recording: ${timeLeft}s`;
         countdown = setInterval(() => {
           timeLeft--;
-          timer.textContent = `Recording: ${timeLeft} seconds`;
+          timerEl.textContent = `Recording: ${timeLeft}s`;
           if (timeLeft <= 0) {
             clearInterval(countdown);
-            mediaRecorder.stop();
+            if (mediaRecorder.state !== "inactive") mediaRecorder.stop();
           }
         }, 1000);
       } catch (err) {
-        resolve({
-          name: "Microphone Test",
-          success: false,
-          details: "Microphone access denied or not available",
-        });
-        dialog.style.display = "none";
+        const isPermission =
+          err.name === "NotAllowedError" ||
+          err.name === "PermissionDeniedError";
+        done(
+          isPermission ? "inconclusive" : "fail",
+          isPermission
+            ? "Microphone permission denied — cannot verify hardware"
+            : `Microphone error: ${err.message}`,
+        );
       }
     });
 
@@ -140,32 +147,14 @@ export async function testMicrophone() {
       noButton.style.display = "block";
     });
 
-    yesButton.addEventListener("click", () => {
-      dialog.style.display = "none";
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
-      resolve({
-        name: "Microphone Test",
-        success: true,
-        details: "Recording and playback successful",
-      });
-    });
+    yesButton.addEventListener("click", () =>
+      done("success", "Recording and playback confirmed by user"),
+    );
+    noButton.addEventListener("click", () =>
+      done("fail", "Recording or playback quality unacceptable"),
+    );
+    reRecordButton.addEventListener("click", resetUI);
 
-    noButton.addEventListener("click", () => {
-      dialog.style.display = "none";
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
-      resolve({
-        name: "Microphone Test",
-        success: false,
-        details: "Recording or playback failed",
-      });
-    });
-
-    reRecordButton.addEventListener("click", () => {
-      // Reset state for re-recording
-      resetState();
-    });
-
-    // Initialize state
-    resetState();
+    resetUI();
   });
 }

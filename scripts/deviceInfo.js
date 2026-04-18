@@ -42,7 +42,7 @@ export async function getDeviceInfo() {
       icon: "ri-layout-4-line",
     },
     "Pixel Ratio": {
-      value: `${window.devicePixelRatio}x`,
+      value: `${window.devicePixelRatio.toFixed(3)}x`,
       icon: "ri-focus-3-line",
     },
     Platform: { value: getPlatform(), icon: "ri-smartphone-line" },

@@ -1,94 +1,76 @@
-// Vibrate the phone with a given pattern
-function vibrateTest(pattern) {
-  if (navigator.vibrate) {
-    navigator.vibrate(pattern);
-  } else {
-    console.warn("Vibration API not supported by this browser.");
+/**
+ * Vibration Tests
+ *
+ *   API absent  → inconclusive (device may lack a motor; browser may just not expose it)
+ *   User felt   → success
+ *   User not felt → fail
+ */
+
+function vibrate(pattern) {
+  return navigator.vibrate(pattern);
+}
+
+async function testSingleVibration(label, pattern) {
+  if (!navigator.vibrate) {
+    return {
+      name: label,
+      status: "inconclusive",
+      details:
+        "Vibration API not supported — cannot determine hardware capability",
+    };
   }
-}
 
-// Test short vibration
-export async function testShortVibration() {
-  const result = await testSingleVibration("Short Vibration", [200]);
-  return {
-    name: "Short Vibration Test",
-    success: result.success,
-    details: result.details,
-  };
-}
-
-// Test medium vibration
-export async function testMediumVibration() {
-  const result = await testSingleVibration("Medium Vibration", [500]);
-  return {
-    name: "Medium Vibration Test",
-    success: result.success,
-    details: result.details,
-  };
-}
-
-// Test long vibration
-export async function testLongVibration() {
-  const result = await testSingleVibration("Long Vibration", [1000]);
-  return {
-    name: "Long Vibration Test",
-    success: result.success,
-    details: result.details,
-  };
-}
-
-// Test a single vibration pattern
-async function testSingleVibration(name, pattern) {
   return new Promise((resolve) => {
-    if (!navigator.vibrate) {
-      resolve({
-        name: name,
-        success: false,
-        details: "Vibration API not supported.",
-      });
-      return;
-    }
-
     const dialog = document.getElementById("vibration-dialog");
-    const overlay = document.getElementById("overlay");
-    dialog.style.display = "flex";
-
-    // Update dialog content for current vibration test
     const title = dialog.querySelector("h3");
     const description = dialog.querySelector("p");
-    title.textContent = `Vibration Test - ${name}`;
-    description.textContent = `A ${name} vibration will activate when you click the button below. Please ensure that 'Do Not Disturb' is off. Did you feel it? `;
-
     const testButton = document.getElementById("vibrate-test");
     const yesButton = document.getElementById("vibration-yes");
     const noButton = document.getElementById("vibration-no");
 
-    // Disable "Yes" and "No" buttons initially
+    dialog.style.display = "flex";
+    title.textContent = `Vibration Test — ${label}`;
+    description.textContent =
+      `Tap the button below to trigger a ${label.toLowerCase()} pulse. ` +
+      `Ensure Silent / Do Not Disturb mode is off. Did you feel it?`;
+
     yesButton.disabled = true;
     noButton.disabled = true;
 
-    // Remove existing event listeners
-    const newTestButton = testButton.cloneNode(true);
-    testButton.parentNode.replaceChild(newTestButton, testButton);
+    // Clone to remove stale listeners
+    const freshBtn = testButton.cloneNode(true);
+    testButton.parentNode.replaceChild(freshBtn, testButton);
 
-    newTestButton.addEventListener("click", () => {
-      vibrateTest(pattern);
-
-      // Enable "Yes" and "No" buttons after vibrating
+    freshBtn.addEventListener("click", () => {
+      vibrate(pattern);
       yesButton.disabled = false;
       noButton.disabled = false;
     });
 
-    function handleResponse(felt) {
+    function respond(felt) {
       dialog.style.display = "none";
+      yesButton.onclick = null;
+      noButton.onclick = null;
       resolve({
-        name: name,
-        success: felt,
-        details: `${name}: ${felt ? "Felt" : "Not felt"}`,
+        name: label,
+        status: felt ? "success" : "fail",
+        details: felt ? `${label} felt` : `${label} not felt`,
       });
     }
 
-    yesButton.onclick = () => handleResponse(true);
-    noButton.onclick = () => handleResponse(false);
+    yesButton.onclick = () => respond(true);
+    noButton.onclick = () => respond(false);
   });
+}
+
+export async function testShortVibration() {
+  return testSingleVibration("Short Vibration", [200]);
+}
+
+export async function testMediumVibration() {
+  return testSingleVibration("Medium Vibration", [500]);
+}
+
+export async function testLongVibration() {
+  return testSingleVibration("Long Vibration", [1000]);
 }

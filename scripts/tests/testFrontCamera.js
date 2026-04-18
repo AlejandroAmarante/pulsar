@@ -1,121 +1,13 @@
-// camera-test.js
+/**
+ * Front Camera Test
+ *
+ *   Permission denied  → inconclusive (can't verify hardware)
+ *   Hardware/other error → fail
+ *   Photo accepted     → success
+ *   Photo rejected     → fail
+ */
+import { cameraTest } from "./cameraTest.js";
+
 export async function testFrontCamera() {
-  return new Promise((resolve) => {
-    // Get DOM elements after ensuring they exist
-    const cameraDialog = document.getElementById("camera-dialog");
-    const video = document.getElementById("camera-preview");
-    const photoPreview = document.getElementById("photo-preview");
-    const captureButton = document.getElementById("capture-button");
-    const previewControls = document.getElementById("preview-controls");
-    const buttonContainer = document.getElementById("button-container");
-    const cameraControls = document.getElementById("camera-controls");
-    const retakeButton = document.getElementById("retake-button");
-    const acceptButton = document.getElementById("accept-button");
-    const rejectButton = document.getElementById("reject-button");
-    const helpText = document.getElementById("help-text");
-
-    let stream = null;
-    let controlsVisible = true;
-    cameraDialog.style.display = "block";
-
-    function toggleControls() {
-      controlsVisible = !controlsVisible;
-      buttonContainer.classList.toggle("controls-hidden", !controlsVisible);
-      helpText.classList.toggle("help-text-hidden", !controlsVisible);
-    }
-
-    async function startCamera() {
-      try {
-        // Stop any existing stream
-        stopCamera();
-
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "user",
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        });
-
-        video.srcObject = stream;
-        await video.play(); // Ensure video starts playing
-
-        video.classList.remove("hidden");
-        photoPreview.classList.add("hidden");
-        cameraControls.classList.remove("hidden");
-        previewControls.classList.add("hidden");
-        controlsVisible = true;
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-        resolve({
-          name: "Camera Photo Test",
-          success: false,
-          details: "Failed to access front camera: " + error.message,
-        });
-      }
-    }
-
-    function stopCamera() {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-        stream = null;
-      }
-      if (video.srcObject) {
-        video.srcObject = null;
-        video.load(); // Reset the video element
-      }
-    }
-
-    function takePhoto() {
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0);
-
-      photoPreview.src = canvas.toDataURL("image/jpeg", 1);
-      console.log("Captured image URL:", photoPreview.src);
-      video.classList.add("hidden");
-      photoPreview.classList.remove("hidden");
-      cameraControls.classList.add("hidden");
-      previewControls.classList.remove("hidden");
-      stopCamera();
-    }
-
-    // Event listeners
-    captureButton.addEventListener("click", takePhoto);
-    photoPreview.addEventListener("click", toggleControls);
-    retakeButton.addEventListener("click", startCamera);
-
-    acceptButton.addEventListener("click", () => {
-      stopCamera();
-      //remove event listeners
-      captureButton.removeEventListener("click", takePhoto);
-      photoPreview.removeEventListener("click", toggleControls);
-      retakeButton.removeEventListener("click", startCamera);
-      cameraDialog.style.display = "none";
-      resolve({
-        name: "Front Camera Photo Test",
-        success: true,
-        details: "Photo accepted",
-        photoData: photoPreview.src,
-      });
-    });
-
-    rejectButton.addEventListener("click", () => {
-      stopCamera();
-      captureButton.removeEventListener("click", takePhoto);
-      photoPreview.removeEventListener("click", toggleControls);
-      retakeButton.removeEventListener("click", startCamera);
-      cameraDialog.style.display = "none";
-      resolve({
-        name: "Front Camera Photo Test",
-        success: false,
-        details: "Photo rejected",
-      });
-    });
-
-    // Start camera when initialized
-    startCamera();
-  });
+  return cameraTest("user", "Front Camera");
 }
