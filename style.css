@@ -659,7 +659,7 @@ img {
 
 #tests .list-item-row {
   cursor: pointer;
-  border: 1px solid var(--border-default)
+  border: 1px solid var(--border-default);
 }
 
 /* #tests .list-item-row:hover .row-icon {
@@ -762,27 +762,43 @@ img {
 }
 
 #tests .list-item-row span {
-  font-size: 14px;
   color: var(--text-secondary);
   letter-spacing: 0.01em;
 }
 
 /* Result rows */
+/* WITH */
 .result-row {
-  align-items: flex-start !important;
-  padding: 10px var(--s2) !important;
+  padding: 8px var(--s2) !important;
 }
 
-.result-row strong {
+.result-row-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.result-row-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.result-row-header strong {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  display: block;
+}
+
+.result-row-header .row-icon {
+  margin-left: auto;
 }
 
 .result-detail {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   display: block;
   line-height: 1.5;
@@ -1125,4 +1141,100 @@ img {
 ::-webkit-scrollbar-thumb {
   background: var(--border-subtle);
   border-radius: var(--r-pill);
+}
+
+/* ─── GROUPED TEST ROWS ──────────────────────────────── */
+
+/* Override base row defaults for grouped containers */
+.grouped-row {
+  align-items: flex-start !important;
+  padding: 8px var(--s2) !important;
+  gap: var(--s3) !important;
+}
+
+/* Nudge the aggregate dot to sit on the first text baseline */
+.grouped-row-header .status {
+  flex-shrink: 0;
+}
+
+/* Fills the remaining width next to the aggregate dot */
+.grouped-row-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+/* Row: group name + play/restart icon */
+.grouped-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+/* Pending-state name */
+.grouped-row-header > span {
+  font-size: 15px;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* Result-state name */
+.grouped-row-header > strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Icon lives inside the header for grouped rows — undo the base margin-left: auto */
+.grouped-row-header .row-icon {
+  margin-left: auto;
+}
+
+/* Indented subtest list with a left border accent */
+.subtest-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: var(--s3);
+  border-left: 1.5px solid var(--border-subtle);
+  margin-left: 4px;
+}
+
+/* Individual subtest row */
+.subtest-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 0;
+}
+
+.subtest-row-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+/* Smaller dot for subtests */
+.subtest-row .status {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+}
+
+/* Subtest name — pending state */
+.subtest-row > span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* Subtest name — result state */
+.subtest-row > div > strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
 }

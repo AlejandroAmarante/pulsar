@@ -1,7 +1,7 @@
 /**
  * Shared camera test logic.
  * @param {'user'|'environment'} facingMode
- * @param {string} label
+ * @param {string} label  – e.g. "Front" or "Rear"
  */
 export async function cameraTest(facingMode, label) {
   return new Promise((resolve) => {
@@ -37,7 +37,6 @@ export async function cameraTest(facingMode, label) {
         });
         video.srcObject = stream;
         await video.play();
-
         video.classList.remove("hidden");
         photoPreview.classList.add("hidden");
         cameraControls.classList.remove("hidden");
@@ -49,11 +48,10 @@ export async function cameraTest(facingMode, label) {
           error.name === "NotAllowedError" ||
           error.name === "PermissionDeniedError";
         resolve({
-          name: label,
           status: isPermission ? "inconclusive" : "fail",
           details: isPermission
-            ? `${label}: camera permission denied — cannot verify hardware`
-            : `${label}: ${error.message}`,
+            ? "Permission denied — cannot verify hardware"
+            : error.message,
         });
       }
     }
@@ -73,10 +71,8 @@ export async function cameraTest(facingMode, label) {
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      const context = canvas.getContext("2d");
-      context.drawImage(video, 0, 0);
+      canvas.getContext("2d").drawImage(video, 0, 0);
       photoPreview.src = canvas.toDataURL("image/jpeg", 0.92);
-
       video.classList.add("hidden");
       photoPreview.classList.remove("hidden");
       cameraControls.classList.add("hidden");
@@ -98,21 +94,12 @@ export async function cameraTest(facingMode, label) {
 
     acceptButton.addEventListener("click", () => {
       cleanup();
-      resolve({
-        name: label,
-        status: "success",
-        details: "Photo captured and accepted",
-        photoData: photoPreview.src,
-      });
+      resolve({ status: "success", details: "Photo captured and accepted" });
     });
 
     rejectButton.addEventListener("click", () => {
       cleanup();
-      resolve({
-        name: label,
-        status: "fail",
-        details: "Photo captured but rejected by user",
-      });
+      resolve({ status: "fail", details: "Photo captured but rejected" });
     });
 
     startCamera();

@@ -9,5 +9,5 @@
 import { cameraTest } from "./cameraTest.js";
 
 export async function testFrontCamera() {
-  return cameraTest("user", "Front Camera");
+  return cameraTest("user", "Front");
 }

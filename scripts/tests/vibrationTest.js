@@ -1,8 +1,8 @@
 /**
  * Vibration Tests
  *
- *   API absent  → inconclusive (device may lack a motor; browser may just not expose it)
- *   User felt   → success
+ *   API absent    → inconclusive
+ *   User felt     → success
  *   User not felt → fail
  */
 
@@ -13,7 +13,6 @@ function vibrate(pattern) {
 async function testSingleVibration(label, pattern) {
   if (!navigator.vibrate) {
     return {
-      name: label,
       status: "inconclusive",
       details:
         "Vibration API not supported — cannot determine hardware capability",
@@ -29,15 +28,15 @@ async function testSingleVibration(label, pattern) {
     const noButton = document.getElementById("vibration-no");
 
     dialog.style.display = "flex";
-    title.textContent = `Vibration Test — ${label}`;
+    title.textContent = `Vibration — ${label}`;
     description.textContent =
-      `Tap the button below to trigger a ${label.toLowerCase()} pulse. ` +
-      `Ensure Silent / Do Not Disturb mode is off. Did you feel it?`;
+      `Tap the button to trigger a ${label.toLowerCase()} pulse. ` +
+      `Make sure Silent / Do Not Disturb is off. Did you feel it?`;
 
     yesButton.disabled = true;
     noButton.disabled = true;
 
-    // Clone to remove stale listeners
+    // Clone to shed any stale listeners
     const freshBtn = testButton.cloneNode(true);
     testButton.parentNode.replaceChild(freshBtn, testButton);
 
@@ -52,9 +51,8 @@ async function testSingleVibration(label, pattern) {
       yesButton.onclick = null;
       noButton.onclick = null;
       resolve({
-        name: label,
         status: felt ? "success" : "fail",
-        details: felt ? `${label} felt` : `${label} not felt`,
+        details: felt ? "Felt" : "Not felt",
       });
     }
 
@@ -64,13 +62,11 @@ async function testSingleVibration(label, pattern) {
 }
 
 export async function testShortVibration() {
-  return testSingleVibration("Short Vibration", [200]);
+  return testSingleVibration("Short", [200]);
 }
-
 export async function testMediumVibration() {
-  return testSingleVibration("Medium Vibration", [500]);
+  return testSingleVibration("Medium", [500]);
 }
-
 export async function testLongVibration() {
-  return testSingleVibration("Long Vibration", [1000]);
+  return testSingleVibration("Long", [1000]);
 }
