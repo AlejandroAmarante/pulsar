@@ -665,7 +665,7 @@ img {
 
 #tests .list-item-row {
   cursor: pointer;
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-subtle);
 }
 
 /* #tests .list-item-row:hover .row-icon {
@@ -1201,26 +1201,64 @@ img {
 
 /* Indented subtest list with a left border accent */
 .subtest-rows {
+  --branch: 14px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-left: var(--s3);
-  border-left: 1.5px solid var(--border-subtle);
-  margin-left: 4px;
+  padding-left: var(--branch);
+  margin-left: 4.5px;
+  position: relative; /* ADD */
 }
 
-/* Individual subtest row */
+.subtest-rows::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  height: calc(var(--s2) + 5px); /* gap (8px) + half the status dot height */
+  width: 1px;
+  background: #e0e0e0;
+}
+
 .subtest-row {
   display: flex;
   flex-direction: column;
   gap: 1px;
   padding: 2px 0;
+  position: relative;
+}
+
+.subtest-row::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--branch));
+  top: -1px;
+  bottom: -1px;
+  width: 1px;
+  background: #e0e0e0;
+}
+
+.subtest-row:last-child::before {
+  bottom: auto;
+  height: 12.5px;
 }
 
 .subtest-row-header {
   display: flex;
   align-items: center;
   gap: var(--s2);
+  position: relative;
+}
+
+.subtest-row-header::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--branch));
+  width: calc(var(--branch) - 7px);
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1px;
+  background: #e0e0e0;
 }
 
 /* Smaller dot for subtests */
