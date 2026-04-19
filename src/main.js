@@ -1,24 +1,20 @@
+/**
+ * main.js
+ * Bootstraps the app and owns all UI/runner logic.
+ * Test data (configurations, helpers) lives in ./tests/index.js.
+ */
+
 import { getDeviceInfo } from "./deviceInfo.js";
-import { testGyroscope } from "./tests/testGyroscope.js";
-import { testColorScreens } from "./tests/testScreenColor.js";
-import { testTouchTracking, cleanupTouchTest } from "./tests/testTouch.js";
 import {
-  testShortVibration,
-  testMediumVibration,
-  testLongVibration,
-} from "./tests/vibrationTest.js";
-import { testGeolocation } from "./tests/testGeolocation.js";
-import { testBluetooth } from "./tests/testBluetooth.js";
-import {
-  testLowFrequency,
-  testMidFrequency,
-  testHighFrequency,
-} from "./tests/testSound.js";
-import { testFrontCamera } from "./tests/testFrontCamera.js";
-import { testRearCamera } from "./tests/testRearCamera.js";
-import { testMicrophone } from "./tests/testMicrophone.js";
+  TEST_CONFIGURATIONS,
+  TOTAL_LEAF_COUNT,
+  toStatusClass,
+  aggregateStatus,
+  cleanupTouchTest,
+} from "./tests/index.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
 const TEST_DURATION = 30; // seconds
 
 const DIALOG_IDS = [
@@ -31,68 +27,8 @@ const DIALOG_IDS = [
   "gyro-dialog",
 ];
 
-// ─── Test registry ────────────────────────────────────────────────────────────
-// Each entry is either a single test or a grouped test.
-// Grouped tests run their subtests sequentially and show sub-rows.
-const TEST_CONFIGURATIONS = [
-  { name: "Gyroscope", testFunction: testGyroscope },
-  { name: "Color Screen", testFunction: testColorScreens },
-  { name: "Touch Tracking", testFunction: testTouchTracking },
-  {
-    name: "Vibration",
-    grouped: true,
-    subtests: [
-      { name: "Short", testFunction: testShortVibration },
-      { name: "Medium", testFunction: testMediumVibration },
-      { name: "Long", testFunction: testLongVibration },
-    ],
-  },
-  { name: "Geolocation", testFunction: testGeolocation },
-  { name: "Bluetooth", testFunction: testBluetooth },
-  {
-    name: "Frequency",
-    grouped: true,
-    subtests: [
-      { name: "Low", testFunction: testLowFrequency },
-      { name: "Mid", testFunction: testMidFrequency },
-      { name: "High", testFunction: testHighFrequency },
-    ],
-  },
-  { name: "Microphone", testFunction: testMicrophone },
-  {
-    name: "Camera",
-    grouped: true,
-    subtests: [
-      { name: "Front", testFunction: testFrontCamera },
-      { name: "Rear", testFunction: testRearCamera },
-    ],
-  },
-];
-
-// Total leaf-test count (subtests count individually, single tests count as 1)
-const TOTAL_LEAF_COUNT = TEST_CONFIGURATIONS.reduce(
-  (sum, cfg) => sum + (cfg.grouped ? cfg.subtests.length : 1),
-  0,
-);
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function toStatusClass(status) {
-  if (status === "success") return "success";
-  if (status === "fail") return "failure";
-  return "inconclusive";
-}
-
-/**
- * Derives an aggregate status from an array of subtest results.
- * All pass → success | any fail → fail | otherwise → inconclusive
- */
-function aggregateStatus(subtestResults) {
-  if (subtestResults.every((r) => r.status === "success")) return "success";
-  if (subtestResults.some((r) => r.status === "fail")) return "fail";
-  return "inconclusive";
-}
-
 // ─── TestRunner ───────────────────────────────────────────────────────────────
+
 class TestRunner {
   constructor() {
     this.els = this.cacheDOMElements();
@@ -117,7 +53,7 @@ class TestRunner {
       this.handleStartClick(),
     );
 
-    // Event delegation — clicking any row (or grouped row) triggers its test
+    // Event delegation — clicking any row triggers its individual test
     this.els.testsContainer.addEventListener("click", (e) => {
       const row = e.target.closest("[data-test-index]");
       if (!row || this.els.startButton.disabled) return;
@@ -126,7 +62,7 @@ class TestRunner {
     });
   }
 
-  // ── Button state ────────────────────────────────────────────────────────────
+  // ── Button state ─────────────────────────────────────────────────────────────
 
   handleStartClick() {
     this.resetTestEnvironment();
@@ -136,6 +72,7 @@ class TestRunner {
   updateButtonState(isRunning, testName = "") {
     const { startButton, btnLabel } = this.els;
     startButton.disabled = isRunning;
+
     if (isRunning) {
       startButton.classList.add("btn--loading");
       btnLabel.textContent = testName || "Running…";
@@ -145,7 +82,7 @@ class TestRunner {
     }
   }
 
-  // ── Progress timer ──────────────────────────────────────────────────────────
+  // ── Progress timer ────────────────────────────────────────────────────────────
 
   createProgressTimer() {
     let startTime = null;
@@ -172,7 +109,7 @@ class TestRunner {
     };
   }
 
-  // ── Full test run ────────────────────────────────────────────────────────────
+  // ── Full test run ─────────────────────────────────────────────────────────────
 
   async startTests() {
     this.els.overlay.style.display = "flex";
@@ -204,7 +141,7 @@ class TestRunner {
           subtestResults.push(result);
           completedLeafs++;
 
-          // Ensure the subtest-rows container exists, creating it on first subtest
+          // Create the subtest-rows container on the first subtest if needed
           const rowEl = row();
           let subRowsContainer = rowEl?.querySelector(".subtest-rows");
           if (!subRowsContainer && rowEl) {
@@ -215,19 +152,18 @@ class TestRunner {
               .appendChild(subRowsContainer);
           }
 
-          // Append this subtest's row
           if (subRowsContainer) {
             const subRow = document.createElement("div");
             subRow.className = "subtest-row";
             subRow.dataset.subtestName = subtest.name;
             subRow.innerHTML = `
-    <div class="status ${toStatusClass(result.status)}"></div>
-    <span>${subtest.name}</span>
-  `;
+              <div class="status ${toStatusClass(result.status)}"></div>
+              <span>${subtest.name}</span>
+            `;
             subRowsContainer.appendChild(subRow);
           }
 
-          // Update the group's aggregate dot
+          // Update the group's aggregate dot live
           const aggNow = aggregateStatus(subtestResults);
           const mainDot = row()?.querySelector(".grouped-row-header .status");
           if (mainDot) mainDot.className = `status ${toStatusClass(aggNow)}`;
@@ -251,7 +187,9 @@ class TestRunner {
         this.progressTimer.stop();
         completedLeafs++;
 
-        const mainDot = row()?.querySelector(".grouped-row-header .status");
+        const mainDot = row()?.querySelector(
+          ".grouped-row-header .status, .status",
+        );
         if (mainDot)
           mainDot.className = `status ${toStatusClass(result.status)}`;
 
@@ -268,8 +206,6 @@ class TestRunner {
   /**
    * Runs one test function, normalises the result to the three-state system,
    * and catches timeouts / thrown errors as inconclusive.
-   * testName is always taken from the caller (config), not the test function's
-   * own return value, so display names stay consistent.
    */
   async executeSingleTest(testFunction, testName) {
     try {
@@ -300,7 +236,7 @@ class TestRunner {
     }
   }
 
-  // ── Re-run a single test by row index ───────────────────────────────────────
+  // ── Re-run a single test by row index ────────────────────────────────────────
 
   async runSingleTestByIndex(index) {
     const cfg = TEST_CONFIGURATIONS[index];
@@ -326,7 +262,7 @@ class TestRunner {
         this.progressTimer.stop();
         subtestResults.push(r);
 
-        // Live-update dots on the existing row (before it's replaced)
+        // Live-update existing row dots
         const row = this.els.testsContainer.querySelector(
           `[data-test-index="${index}"]`,
         );
@@ -385,11 +321,8 @@ class TestRunner {
       : `Error: ${error.message}`;
   }
 
-  // ── Progress bar / counters ─────────────────────────────────────────────────
+  // ── Progress bar / counters ───────────────────────────────────────────────────
 
-  /**
-   * Updates the "N / Total" label during a sequential run.
-   */
   updateLeafCount(completedLeafs) {
     if (this.els.testCount) {
       this.els.testCount.textContent = `${completedLeafs} / ${TOTAL_LEAF_COUNT}`;
@@ -398,10 +331,10 @@ class TestRunner {
   }
 
   /**
-   * Re-derives pass/fail/inconclusive counts from live DOM leaf statuses
+   * Derives pass/fail/inconclusive counts from live DOM leaf statuses
    * and syncs the gradient progress bar.
-   * "Leaf" statuses = subtest-row dots + single-test (non-grouped) dots.
-   * The aggregate dot on a grouped row is intentionally excluded.
+   * Leaf statuses = subtest-row dots + single-test (non-grouped) dots.
+   * The aggregate dot on a grouped row header is intentionally excluded.
    */
   syncProgressBar() {
     const leafSel = [
@@ -439,9 +372,6 @@ class TestRunner {
     );
   }
 
-  /**
-   * Recalculates everything from DOM after a single-test re-run.
-   */
   recalculateCounts() {
     const leafSel = [
       "#tests .subtest-row .status",
@@ -464,7 +394,7 @@ class TestRunner {
     this.syncProgressBar();
   }
 
-  // ── Results display ─────────────────────────────────────────────────────────
+  // ── Results display ───────────────────────────────────────────────────────────
 
   displayResults(results) {
     const { testsLabel, testsContainer } = this.els;
@@ -477,10 +407,10 @@ class TestRunner {
 
     this.updateButtonState(false);
     this.els.btnLabel.textContent = "Re-run Tests";
+
     const btnIcon = this.els.startButton.querySelector(".btn-icon");
     if (btnIcon) btnIcon.className = "ri-loop-right-line btn-icon";
 
-    // Summary line counts leaf-level tests only
     const passed = this.countLeafsByStatus(results, "success");
     const inconclusive = this.countLeafsByStatus(results, "inconclusive");
     const failed = this.countLeafsByStatus(results, "fail");
@@ -495,57 +425,56 @@ class TestRunner {
 
   countLeafsByStatus(results, status) {
     return results.reduce((sum, r) => {
-      if (r.grouped) {
+      if (r.grouped)
         return sum + r.subtests.filter((s) => s.status === status).length;
-      }
       return sum + (r.status === status ? 1 : 0);
     }, 0);
   }
 
-  // ── HTML factories ──────────────────────────────────────────────────────────
+  // ── HTML factories ────────────────────────────────────────────────────────────
 
   createResultHTML(result, index) {
     if (result.grouped) {
       const subtestRows = result.subtests
         .map(
           (sub) => `
-      <div class="subtest-row" data-subtest-name="${sub.name}">
-        <div class="subtest-row-header">
-          <div class="status ${toStatusClass(sub.status)}"></div>
-          <strong>${sub.name}</strong>
-        </div>
-        <span class="result-detail">${sub.details}</span>
-      </div>`,
+          <div class="subtest-row" data-subtest-name="${sub.name}">
+            <div class="subtest-row-header">
+              <div class="status ${toStatusClass(sub.status)}"></div>
+              <strong>${sub.name}</strong>
+            </div>
+            <span class="result-detail">${sub.details}</span>
+          </div>`,
         )
         .join("");
 
       return `
-  <div class="list-item-row result-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
-    <div class="grouped-row-content">
-      <div class="grouped-row-header">
-        <div class="status ${toStatusClass(result.status)}"></div>
-        <strong>${result.name}</strong>
-        <i class="ri-loop-right-line row-icon"></i>
-      </div>
-      <div class="subtest-rows">${subtestRows}</div>
-    </div>
-  </div>`;
+      <div class="list-item-row result-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
+        <div class="grouped-row-content">
+          <div class="grouped-row-header">
+            <div class="status ${toStatusClass(result.status)}"></div>
+            <strong>${result.name}</strong>
+            <i class="ri-loop-right-line row-icon"></i>
+          </div>
+          <div class="subtest-rows">${subtestRows}</div>
+        </div>
+      </div>`;
     }
 
     return `
-  <div class="list-item-row result-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
-    <div class="result-row-content">
-      <div class="result-row-header">
-        <div class="status ${toStatusClass(result.status)}"></div>
-        <strong>${result.name}</strong>
-        <i class="ri-loop-right-line row-icon"></i>
+    <div class="list-item-row result-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
+      <div class="result-row-content">
+        <div class="result-row-header">
+          <div class="status ${toStatusClass(result.status)}"></div>
+          <strong>${result.name}</strong>
+          <i class="ri-loop-right-line row-icon"></i>
+        </div>
+        <span class="result-detail">${result.details}</span>
       </div>
-      <span class="result-detail">${result.details}</span>
-    </div>
-  </div>`;
+    </div>`;
   }
 
-  // ── Reset ───────────────────────────────────────────────────────────────────
+  // ── Reset ─────────────────────────────────────────────────────────────────────
 
   resetTestEnvironment() {
     const { testsLabel, testCount } = this.els;
@@ -564,23 +493,23 @@ class TestRunner {
       (cfg, index) => {
         if (cfg.grouped) {
           return `
-  <div class="list-item-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
-    <div class="grouped-row-content">
-      <div class="grouped-row-header">
-        <div class="status pending"></div>
-        <span>${cfg.name}</span>
-        <i class="ri-play-fill row-icon"></i>
-      </div>
-    </div>
-  </div>`;
+        <div class="list-item-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
+          <div class="grouped-row-content">
+            <div class="grouped-row-header">
+              <div class="status pending"></div>
+              <span>${cfg.name}</span>
+              <i class="ri-play-fill row-icon"></i>
+            </div>
+          </div>
+        </div>`;
         }
 
         return `
-        <div class="list-item-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
-          <div class="status pending"></div>
-          <span>${cfg.name}</span>
-          <i class="ri-play-fill row-icon"></i>
-        </div>`;
+      <div class="list-item-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
+        <div class="status pending"></div>
+        <span>${cfg.name}</span>
+        <i class="ri-play-fill row-icon"></i>
+      </div>`;
       },
     ).join("");
 
@@ -606,6 +535,7 @@ class TestRunner {
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+
 document.addEventListener("DOMContentLoaded", () => {
   window.scrollTo(0, 0);
   getDeviceInfo();
