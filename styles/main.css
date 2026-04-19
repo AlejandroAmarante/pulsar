@@ -1189,6 +1189,103 @@ img {
   color: var(--text-muted) !important;
 }
 
+.browser-notice {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) translateY(18px);
+  width: min(92vw, 560px);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s4);
+  border-radius: var(--r-xl);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.browser-notice.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.browser-notice__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.browser-notice__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.browser-notice__title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.browser-notice__text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  text-align: justify;
+}
+
+.browser-notice__close {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+  display: grid;
+  /* border: 1px solid var(--border-default); */
+  align-self: flex-start;
+  place-items: center;
+  color: var(--text-secondary);
+  background: transparent;
+  transition:
+    background var(--dur-fast),
+    color var(--dur-fast);
+}
+
+.browser-notice__close:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+@media (max-width: 480px) {
+  .browser-notice {
+    width: calc(100vw - 20px);
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: var(--s3);
+  }
+
+  .browser-notice__text {
+    font-size: 12px;
+  }
+}
+
 /* ─── 18. SCROLLBAR ──────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 3px;
