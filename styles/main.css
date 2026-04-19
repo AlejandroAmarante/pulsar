@@ -30,7 +30,7 @@
 /* ─── 1. DESIGN TOKENS ───────────────────────────────── */
 :root {
   /* Surfaces */
-  --bg-void: #fbfbfb;
+  --bg-void: #f6f6f6;
   --bg-base: #ffffff;
   --bg-surface: #f9fafc;
   --bg-raised: #e9eaee;
