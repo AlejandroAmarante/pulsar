@@ -8,10 +8,12 @@ import { getDeviceInfo } from "./deviceInfo.js";
 import {
   TEST_CONFIGURATIONS,
   TOTAL_LEAF_COUNT,
-  toStatusClass,
   aggregateStatus,
   cleanupTouchTest,
 } from "./tests/index.js";
+
+// ── BARCODE SHARING ───────────────────────────────────────────────────────────
+import { initBarcodeSharing, initScanListener } from "./barcodeShare.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -26,6 +28,29 @@ const DIALOG_IDS = [
   "vibration-dialog",
   "gyro-dialog",
 ];
+
+// ─── Status Icon Helpers ──────────────────────────────────────────────────────
+
+const STATUS_ICON_MAP = {
+  success: { icon: "ri-checkbox-circle-line", mod: "status-icon--pass" },
+  fail: { icon: "ri-close-circle-line", mod: "status-icon--fail" },
+  partial: {
+    icon: "ri-indeterminate-circle-line",
+    mod: "status-icon--partial",
+  },
+  _pending: { icon: "ri-record-circle-line", mod: "status-icon--pending" },
+};
+
+function statusIconEl(status) {
+  const { icon, mod } = STATUS_ICON_MAP[status] ?? STATUS_ICON_MAP._pending;
+  return `<i class="status-icon ${icon} ${mod}" aria-hidden="true"></i>`;
+}
+
+function applyStatusIcon(el, status) {
+  if (!el) return;
+  const { icon, mod } = STATUS_ICON_MAP[status] ?? STATUS_ICON_MAP._pending;
+  el.className = `status-icon ${icon} ${mod}`;
+}
 
 // ─── TestRunner ───────────────────────────────────────────────────────────────
 
@@ -53,7 +78,6 @@ class TestRunner {
       this.handleStartClick(),
     );
 
-    // Event delegation — clicking any row triggers its individual test
     this.els.testsContainer.addEventListener("click", (e) => {
       const row = e.target.closest("[data-test-index]");
       if (!row || this.els.startButton.disabled) return;
@@ -62,7 +86,7 @@ class TestRunner {
     });
   }
 
-  // ── Button state ─────────────────────────────────────────────────────────────
+  // ── Button state ──────────────────────────────────────────────────────────
 
   handleStartClick() {
     this.resetTestEnvironment();
@@ -82,7 +106,7 @@ class TestRunner {
     }
   }
 
-  // ── Progress timer ────────────────────────────────────────────────────────────
+  // ── Progress timer ────────────────────────────────────────────────────────
 
   createProgressTimer() {
     let startTime = null;
@@ -109,7 +133,7 @@ class TestRunner {
     };
   }
 
-  // ── Full test run ─────────────────────────────────────────────────────────────
+  // ── Full test run ─────────────────────────────────────────────────────────
 
   async startTests() {
     this.els.overlay.style.display = "flex";
@@ -141,7 +165,6 @@ class TestRunner {
           subtestResults.push(result);
           completedLeafs++;
 
-          // Create the subtest-rows container on the first subtest if needed
           const rowEl = row();
           let subRowsContainer = rowEl?.querySelector(".subtest-rows");
           if (!subRowsContainer && rowEl) {
@@ -157,16 +180,17 @@ class TestRunner {
             subRow.className = "subtest-row";
             subRow.dataset.subtestName = subtest.name;
             subRow.innerHTML = `
-              <div class="status ${toStatusClass(result.status)}"></div>
+              ${statusIconEl(result.status)}
               <span>${subtest.name}</span>
             `;
             subRowsContainer.appendChild(subRow);
           }
 
-          // Update the group's aggregate dot live
           const aggNow = aggregateStatus(subtestResults);
-          const mainDot = row()?.querySelector(".grouped-row-header .status");
-          if (mainDot) mainDot.className = `status ${toStatusClass(aggNow)}`;
+          const mainIcon = row()?.querySelector(
+            ".grouped-row-header .status-icon",
+          );
+          applyStatusIcon(mainIcon, aggNow);
 
           this.updateLeafCount(completedLeafs);
         }
@@ -187,11 +211,8 @@ class TestRunner {
         this.progressTimer.stop();
         completedLeafs++;
 
-        const mainDot = row()?.querySelector(
-          ".grouped-row-header .status, .status",
-        );
-        if (mainDot)
-          mainDot.className = `status ${toStatusClass(result.status)}`;
+        const statusIcon = row()?.querySelector(".status-icon");
+        applyStatusIcon(statusIcon, result.status);
 
         results.push(result);
         this.updateLeafCount(completedLeafs);
@@ -203,10 +224,6 @@ class TestRunner {
     return results;
   }
 
-  /**
-   * Runs one test function, normalises the result to the three-state system,
-   * and catches timeouts / thrown errors as inconclusive.
-   */
   async executeSingleTest(testFunction, testName) {
     try {
       const result = await Promise.race([
@@ -220,7 +237,7 @@ class TestRunner {
           ? "success"
           : result?.success === false
             ? "fail"
-            : "inconclusive");
+            : "partial");
 
       return {
         name: testName,
@@ -230,13 +247,13 @@ class TestRunner {
     } catch (error) {
       return {
         name: testName,
-        status: "inconclusive",
+        status: "partial",
         details: this.formatErrorMessage(error),
       };
     }
   }
 
-  // ── Re-run a single test by row index ────────────────────────────────────────
+  // ── Re-run a single test by row index ─────────────────────────────────────
 
   async runSingleTestByIndex(index) {
     const cfg = TEST_CONFIGURATIONS[index];
@@ -262,18 +279,16 @@ class TestRunner {
         this.progressTimer.stop();
         subtestResults.push(r);
 
-        // Live-update existing row dots
         const row = this.els.testsContainer.querySelector(
           `[data-test-index="${index}"]`,
         );
-        const subDot = row?.querySelector(
-          `.subtest-row[data-subtest-name="${subtest.name}"] .status`,
+        const subIcon = row?.querySelector(
+          `.subtest-row[data-subtest-name="${subtest.name}"] .status-icon`,
         );
-        if (subDot) subDot.className = `status ${toStatusClass(r.status)}`;
+        applyStatusIcon(subIcon, r.status);
 
-        const mainDot = row?.querySelector(".grouped-row-header .status");
-        if (mainDot)
-          mainDot.className = `status ${toStatusClass(aggregateStatus(subtestResults))}`;
+        const mainIcon = row?.querySelector(".grouped-row-header .status-icon");
+        applyStatusIcon(mainIcon, aggregateStatus(subtestResults));
       }
 
       result = {
@@ -292,7 +307,6 @@ class TestRunner {
     this.hideAllDialogs();
     this.updateButtonState(false);
 
-    // Replace the row in-place
     const oldRow = this.els.testsContainer.querySelector(
       `[data-test-index="${index}"]`,
     );
@@ -317,89 +331,42 @@ class TestRunner {
 
   formatErrorMessage(error) {
     return error.message === "Test timed out"
-      ? `Timed out after ${TEST_DURATION}s — result inconclusive`
+      ? `Timed out after ${TEST_DURATION}s — result partial`
       : `Error: ${error.message}`;
   }
 
-  // ── Progress bar / counters ───────────────────────────────────────────────────
+  // ── Progress / counters ───────────────────────────────────────────────────
 
   updateLeafCount(completedLeafs) {
     if (this.els.testCount) {
       this.els.testCount.textContent = `${completedLeafs} / ${TOTAL_LEAF_COUNT}`;
     }
-    this.syncProgressBar();
-  }
-
-  /**
-   * Derives pass/fail/inconclusive counts from live DOM leaf statuses
-   * and syncs the gradient progress bar.
-   * Leaf statuses = subtest-row dots + single-test (non-grouped) dots.
-   * The aggregate dot on a grouped row header is intentionally excluded.
-   */
-  syncProgressBar() {
-    const leafSel = [
-      "#tests .subtest-row .status",
-      "#tests .list-item-row:not(.grouped-row) > .status",
-    ].join(", ");
-
-    const leafDots = [...document.querySelectorAll(leafSel)];
-    const passed = leafDots.filter((el) =>
-      el.classList.contains("success"),
-    ).length;
-    const failed = leafDots.filter((el) =>
-      el.classList.contains("failure"),
-    ).length;
-    const inconclusive = leafDots.filter((el) =>
-      el.classList.contains("inconclusive"),
-    ).length;
-    const total = TOTAL_LEAF_COUNT;
-
-    const successPct = (passed / total) * 100;
-    const inconclusivePct = ((passed + inconclusive) / total) * 100;
-    const completedPct = ((passed + failed + inconclusive) / total) * 100;
-
-    this.els.testsLabel.style.setProperty(
-      "--success-progress",
-      `${successPct}%`,
-    );
-    this.els.testsLabel.style.setProperty(
-      "--inconclusive-progress",
-      `${inconclusivePct}%`,
-    );
-    this.els.testsLabel.style.setProperty(
-      "--completed-progress",
-      `${completedPct}%`,
-    );
   }
 
   recalculateCounts() {
     const leafSel = [
-      "#tests .subtest-row .status",
-      "#tests .list-item-row:not(.grouped-row) > .status",
+      "#tests .subtest-row .status-icon",
+      "#tests .list-item-row:not(.grouped-row) > .status-icon",
     ].join(", ");
 
-    const leafDots = [...document.querySelectorAll(leafSel)];
-    const completed = leafDots.filter(
+    const leafIcons = [...document.querySelectorAll(leafSel)];
+    const completed = leafIcons.filter(
       (el) =>
-        el.classList.contains("success") ||
-        el.classList.contains("failure") ||
-        el.classList.contains("inconclusive"),
+        el.classList.contains("status-icon--pass") ||
+        el.classList.contains("status-icon--fail") ||
+        el.classList.contains("status-icon--partial"),
     ).length;
 
     if (this.els.testCount) {
       this.els.testCount.textContent = `${completed} / ${TOTAL_LEAF_COUNT}`;
     }
-
-    this.els.testsLabel.classList.add("active");
-    this.syncProgressBar();
   }
 
-  // ── Results display ───────────────────────────────────────────────────────────
+  // ── Results display ───────────────────────────────────────────────────────
 
   displayResults(results) {
     const { testsLabel, testsContainer } = this.els;
     if (testsLabel) testsLabel.textContent = "Results";
-    this.els.testsLabel.classList.add("active");
 
     testsContainer.innerHTML = results
       .map((result, index) => this.createResultHTML(result, index))
@@ -412,15 +379,31 @@ class TestRunner {
     if (btnIcon) btnIcon.className = "ri-loop-right-line btn-icon";
 
     const passed = this.countLeafsByStatus(results, "success");
-    const inconclusive = this.countLeafsByStatus(results, "inconclusive");
+    const partial = this.countLeafsByStatus(results, "partial");
     const failed = this.countLeafsByStatus(results, "fail");
 
     if (this.els.testCount) {
-      this.els.testCount.textContent = `${passed} passed · ${inconclusive} inconclusive · ${failed} failed`;
+      this.els.testCount.innerHTML = `
+        <div class="results-summary">
+          <div class="psm-badge psm-badge--pass">
+            <i class="ri-checkbox-circle-line"></i>
+            <strong>${passed}</strong> Passed
+          </div>
+          <div class="psm-badge psm-badge--warn">
+            <i class="ri-indeterminate-circle-line"></i>
+            <strong>${partial}</strong> partial
+          </div>
+          <div class="psm-badge psm-badge--fail">
+            <i class="ri-close-circle-line"></i>
+            <strong>${failed}</strong> Failed
+          </div>
+        </div>
+      `;
     }
 
-    this.syncProgressBar();
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+
+    initBarcodeSharing(results);
   }
 
   countLeafsByStatus(results, status) {
@@ -431,7 +414,7 @@ class TestRunner {
     }, 0);
   }
 
-  // ── HTML factories ────────────────────────────────────────────────────────────
+  // ── HTML factories ────────────────────────────────────────────────────────
 
   createResultHTML(result, index) {
     if (result.grouped) {
@@ -440,7 +423,7 @@ class TestRunner {
           (sub) => `
           <div class="subtest-row" data-subtest-name="${sub.name}">
             <div class="subtest-row-header">
-              <div class="status ${toStatusClass(sub.status)}"></div>
+              ${statusIconEl(sub.status)}
               <strong>${sub.name}</strong>
             </div>
             <span class="result-detail">${sub.details}</span>
@@ -452,7 +435,7 @@ class TestRunner {
       <div class="list-item-row result-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
         <div class="grouped-row-content">
           <div class="grouped-row-header">
-            <div class="status ${toStatusClass(result.status)}"></div>
+            ${statusIconEl(result.status)}
             <strong>${result.name}</strong>
             <i class="ri-loop-right-line row-icon"></i>
           </div>
@@ -465,7 +448,7 @@ class TestRunner {
     <div class="list-item-row result-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
       <div class="result-row-content">
         <div class="result-row-header">
-          <div class="status ${toStatusClass(result.status)}"></div>
+          ${statusIconEl(result.status)}
           <strong>${result.name}</strong>
           <i class="ri-loop-right-line row-icon"></i>
         </div>
@@ -474,17 +457,19 @@ class TestRunner {
     </div>`;
   }
 
-  // ── Reset ─────────────────────────────────────────────────────────────────────
+  // ── Reset ─────────────────────────────────────────────────────────────────
 
   resetTestEnvironment() {
     const { testsLabel, testCount } = this.els;
     if (testsLabel) testsLabel.textContent = "Tests";
-    if (testCount) testCount.textContent = "";
+    if (testCount) testCount.innerHTML = "";
 
     this.initializeTestElements();
     this.cleanupTests();
     this.hideAllDialogs();
-    this.els.testsLabel.classList.remove("active");
+
+    document.getElementById("pulsar-barcode-section")?.remove();
+
     getDeviceInfo();
   }
 
@@ -496,7 +481,7 @@ class TestRunner {
         <div class="list-item-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
           <div class="grouped-row-content">
             <div class="grouped-row-header">
-              <div class="status pending"></div>
+              ${statusIconEl("_pending")}
               <span>${cfg.name}</span>
               <i class="ri-play-fill row-icon"></i>
             </div>
@@ -506,7 +491,7 @@ class TestRunner {
 
         return `
       <div class="list-item-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
-        <div class="status pending"></div>
+        ${statusIconEl("_pending")}
         <span>${cfg.name}</span>
         <i class="ri-play-fill row-icon"></i>
       </div>`;
@@ -516,10 +501,6 @@ class TestRunner {
     if (this.els.testCount) {
       this.els.testCount.textContent = `0 / ${TOTAL_LEAF_COUNT}`;
     }
-
-    this.els.testsLabel.style.setProperty("--success-progress", "0%");
-    this.els.testsLabel.style.setProperty("--inconclusive-progress", "0%");
-    this.els.testsLabel.style.setProperty("--completed-progress", "0%");
   }
 
   cleanupTests() {
@@ -539,6 +520,9 @@ class TestRunner {
 document.addEventListener("DOMContentLoaded", () => {
   window.scrollTo(0, 0);
   getDeviceInfo();
+
   const runner = new TestRunner();
   runner.initializeTestElements();
+
+  initScanListener();
 });

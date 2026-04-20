@@ -2,7 +2,7 @@
  * Touch Tracking Test
  *
  *   ≥ 95% coverage           → success
- *   Timeout with ≥ 50%       → inconclusive (partial, not definitively broken)
+ *   Timeout with ≥ 50%       → partial (partial, not definitively broken)
  *   Timeout with < 50%       → fail
  */
 export function cleanupTouchTest() {
@@ -62,7 +62,7 @@ export async function testTouchTracking() {
     const { numRows, numCols, squareSize } = grid;
     const totalW = numCols * squareSize;
     const totalH = numRows * squareSize;
-    const MINIMUM_COVERAGE = 0.95;
+    const MINIMUM_COVERAGE = 1.0;
 
     Object.assign(canvas.style, {
       width: `${totalW}px`,
@@ -213,7 +213,7 @@ export async function testTouchTracking() {
       cleanup();
       resolve({
         name: "Touch Tracking",
-        status: coverage >= 0.5 ? "inconclusive" : "fail",
+        status: coverage >= 0.5 ? "partial" : "fail",
         details:
           coverage >= 0.5
             ? `Timed out at ${pct}% coverage — possible dead zones`

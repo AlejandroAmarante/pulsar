@@ -3,7 +3,7 @@
  * Handles both front and rear camera tests via a shared cameraTest() core.
  *
  * Outcomes
- *   Permission denied    → inconclusive  (can't verify hardware)
+ *   Permission denied    → partial  (can't verify hardware)
  *   Hardware/other error → fail
  *   Photo accepted       → success
  *   Photo rejected       → fail
@@ -86,7 +86,7 @@ async function cameraTest(facingMode, label) {
           error.name === "PermissionDeniedError";
 
         resolve({
-          status: isPermission ? "inconclusive" : "fail",
+          status: isPermission ? "partial" : "fail",
           details: isPermission
             ? `${label} camera — permission denied, cannot verify hardware`
             : `${label} camera error: ${error.message}`,

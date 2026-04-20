@@ -3,8 +3,8 @@
  *
  *   API absent        → fail
  *   Position acquired → success
- *   Permission denied → inconclusive (can't test hardware without permission)
- *   Other error       → inconclusive (signal/environment issue, not hardware fault)
+ *   Permission denied → partial (can't test hardware without permission)
+ *   Other error       → partial (signal/environment issue, not hardware fault)
  */
 export async function testGeolocation() {
   if (!("geolocation" in navigator)) {
@@ -30,7 +30,7 @@ export async function testGeolocation() {
         const isPermissionDenied = error.code === 1;
         resolve({
           name: "Geolocation",
-          status: "inconclusive",
+          status: "partial",
           details: isPermissionDenied
             ? "Location permission denied — cannot verify hardware"
             : `Location unavailable: ${error.message}`,

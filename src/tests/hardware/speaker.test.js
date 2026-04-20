@@ -1,7 +1,7 @@
 /**
  * Sound Tests
  *
- *   AudioContext unavailable → inconclusive
+ *   AudioContext unavailable → partial
  *   User confirms hearing    → success
  *   User denies hearing      → fail
  */
@@ -48,7 +48,7 @@ async function testSingleFrequency(label, frequency) {
   if (!(window.AudioContext || window.webkitAudioContext)) {
     return {
       name: label,
-      status: "inconclusive",
+      status: "partial",
       details: "Web Audio API not supported — cannot play test tone",
     };
   }
@@ -81,7 +81,7 @@ async function testSingleFrequency(label, frequency) {
         // AudioContext failed at runtime
         resolve({
           name: label,
-          status: "inconclusive",
+          status: "partial",
           details: "Audio context could not be created",
         });
         dialog.style.display = "none";

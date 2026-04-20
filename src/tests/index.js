@@ -79,19 +79,19 @@ export const TOTAL_LEAF_COUNT = TEST_CONFIGURATIONS.reduce(
 export function toStatusClass(status) {
   if (status === "success") return "success";
   if (status === "fail") return "failure";
-  return "inconclusive";
+  return "partial";
 }
 
 /**
  * Derives an aggregate status from an array of subtest results.
  *   All pass  → success
  *   Any fail  → fail
- *   Otherwise → inconclusive
+ *   Otherwise → partial
  */
 export function aggregateStatus(subtestResults) {
   if (subtestResults.every((r) => r.status === "success")) return "success";
   if (subtestResults.some((r) => r.status === "fail")) return "fail";
-  return "inconclusive";
+  return "partial";
 }
 
 // ─── Cleanup exports ──────────────────────────────────────────────────────────

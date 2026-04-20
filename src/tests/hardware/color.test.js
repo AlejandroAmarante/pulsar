@@ -4,7 +4,7 @@
  * User confirms each color visually.
  *   All pass  → success
  *   Any fail  → fail
- * No inconclusive path here — user is the sensor.
+ * No partial path here — user is the sensor.
  */
 export async function testColorScreens() {
   return new Promise((resolve) => {

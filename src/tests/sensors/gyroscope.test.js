@@ -2,9 +2,9 @@
  * Gyroscope / Device Orientation Test
  *
  * The user tilts the device to fill 16 angular slices.
- *   API absent or permission denied → inconclusive
+ *   API absent or permission denied → partial
  *   All slices filled               → success
- *   (timeout handled by main runner → inconclusive)
+ *   (timeout handled by main runner → partial)
  */
 export async function testGyroscope() {
   return new Promise(async (resolve) => {
@@ -31,14 +31,14 @@ export async function testGyroscope() {
         if (permission !== "granted") {
           return resolve({
             name: "Gyroscope",
-            status: "inconclusive",
+            status: "partial",
             details: "Motion permission denied — cannot verify gyroscope",
           });
         }
       } catch {
         return resolve({
           name: "Gyroscope",
-          status: "inconclusive",
+          status: "partial",
           details: "Motion permission request failed",
         });
       }
@@ -47,7 +47,7 @@ export async function testGyroscope() {
     if (!window.DeviceOrientationEvent) {
       return resolve({
         name: "Gyroscope",
-        status: "inconclusive",
+        status: "partial",
         details: "DeviceOrientation API not supported",
       });
     }

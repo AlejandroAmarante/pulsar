@@ -1,7 +1,7 @@
 /**
  * Microphone Test
  *
- *   Permission denied → inconclusive
+ *   Permission denied → partial
  *   Other error       → fail
  *   Playback confirmed → success
  *   Playback denied   → fail
@@ -132,7 +132,7 @@ export async function testMicrophone() {
           err.name === "NotAllowedError" ||
           err.name === "PermissionDeniedError";
         done(
-          isPermission ? "inconclusive" : "fail",
+          isPermission ? "partial" : "fail",
           isPermission
             ? "Microphone permission denied — cannot verify hardware"
             : `Microphone error: ${err.message}`,

@@ -1,7 +1,7 @@
 /**
  * Vibration Tests
  *
- *   API absent    → inconclusive
+ *   API absent    → partial
  *   User felt     → success
  *   User not felt → fail
  */
@@ -13,7 +13,7 @@ function vibrate(pattern) {
 async function testSingleVibration(label, pattern) {
   if (!navigator.vibrate) {
     return {
-      status: "inconclusive",
+      status: "partial",
       details:
         "Vibration API not supported — cannot determine hardware capability",
     };

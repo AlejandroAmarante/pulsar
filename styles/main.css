@@ -10,20 +10,20 @@
    3.  Typography Utilities
    4.  Layout — Page & Grid
    5.  Header
-   6.  Block Labels
-   7.  Panels & Sections
-   8.  Device Info List
-   9.  Test Rows & Results
-   10. Grouped / Subtest Rows
-   11. Buttons
-   12. Status Dots
-   13. Progress & Timer Bar
-   14. Overlay
-   15. Bottom Sheets
-   16. Fullscreen Dialogs — Camera
-   17. Fullscreen Dialogs — Touch / Gyro / Color
-   18. Utilities
-   19. Scrollbar
+   6.  Panels & Sections
+   7.  Device Info List
+   8.  Test Rows & Results
+   9.  Grouped / Subtest Rows
+   10. Buttons
+   11. Status Icons
+   12. Progress & Timer Bar
+   13. Overlay
+   14. Bottom Sheets
+   15. Fullscreen Dialogs — Camera
+   16. Fullscreen Dialogs — Touch / Gyro / Color
+   17. Utilities & Scrollbar
+   18. Barcode Share Section
+   19. Scan Results Modal
    20. Animations / Keyframes
 ═══════════════════════════════════════════════════════ */
 
@@ -100,26 +100,6 @@
   --dur-slow: 300ms;
 }
 
-/* Dark mode tokens (disabled)
-:root {
-  --bg-void:    #090909;
-  --bg-base:    #0e0e0f;
-  --bg-surface: #141416;
-  --bg-raised:  #1b1b1e;
-  --bg-input:   #111113;
-  --bg-hover:   #1e1e22;
-
-  --border-faint:   rgba(255, 255, 255, 0.04);
-  --border-subtle:  rgba(255, 255, 255, 0.07);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong:  rgba(255, 255, 255, 0.17);
-
-  --text-primary:   #e0e0e3;
-  --text-secondary: #88888f;
-  --text-muted:     #3e3e48;
-}
-*/
-
 /* ─── 2. RESET & BASE ────────────────────────────────── */
 *,
 *::before,
@@ -179,7 +159,6 @@ img {
 
 /* ─── 3. TYPOGRAPHY UTILITIES ────────────────────────── */
 
-/* Mono data label used in multiple components */
 .block-label {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -193,28 +172,12 @@ img {
   user-select: none;
 }
 
-/* Trailing rule that doubles as a progress bar in the tests section */
+/* Static trailing rule */
 .block-label::after {
   content: "";
   flex: 1;
   height: 2px;
   background: var(--border-faint);
-  transition: background 0.25s var(--ease-out);
-}
-
-/* Segmented progress colours on the tests label */
-#tests-label.active::after {
-  background: linear-gradient(
-    to right,
-    var(--success) 0%,
-    var(--success) var(--success-progress, 0%),
-    var(--warn) var(--success-progress, 0%),
-    var(--warn) var(--inconclusive-progress, 0%),
-    var(--error) var(--inconclusive-progress, 0%),
-    var(--error) var(--completed-progress, 0%),
-    var(--border-faint) var(--completed-progress, 0%),
-    var(--border-faint) 100%
-  );
 }
 
 /* ─── 4. LAYOUT — PAGE & GRID ────────────────────────── */
@@ -256,7 +219,6 @@ img {
   flex: 1;
 }
 
-/* Anchors for the two-column sections */
 #device-section,
 #tests-section {
   min-width: 0;
@@ -280,7 +242,6 @@ img {
   gap: var(--s2);
 }
 
-/* Logo lockup */
 .logo-mark {
   width: 56px;
   min-width: 56px;
@@ -293,7 +254,6 @@ img {
   position: relative;
 }
 
-/* CRT scanline overlay on the logo */
 .logo-mark::after {
   content: "";
   position: absolute;
@@ -309,7 +269,6 @@ img {
   pointer-events: none;
 }
 
-/* Animated EKG line inside the logo */
 .ekg-svg {
   position: absolute;
   inset: 0;
@@ -355,7 +314,6 @@ img {
   text-overflow: clip;
 }
 
-/* "Run Tests" button in the header */
 .btn-header {
   margin-left: auto;
   height: 40px;
@@ -423,7 +381,7 @@ img {
 }
 
 #tests .list-item-row {
-  padding: 8px var(--s2);
+  padding: 8px var(--s3);
   cursor: pointer;
   gap: var(--s3);
   border: 1px solid var(--border-subtle);
@@ -440,7 +398,6 @@ img {
   border-radius: var(--r-sm);
 }
 
-/* Trailing chevron / action icon on each row */
 .row-icon {
   font-size: 18px;
   color: var(--text-secondary);
@@ -451,7 +408,6 @@ img {
   transition: color var(--dur-fast);
 }
 
-/* Completed result rows */
 .result-row {
   padding: 8px var(--s2) !important;
 }
@@ -488,18 +444,15 @@ img {
   line-height: 1.5;
 }
 
-/* Test count badge */
-.test-count {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 0.06em;
-  flex-shrink: 0;
+/* Results summary badges in the test count area */
+.results-summary {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 /* ─── 9. GROUPED / SUBTEST ROWS ──────────────────────── */
-
-/* Override base row padding/alignment for grouped containers */
 .grouped-row {
   align-items: flex-start !important;
   padding: 8px var(--s2) !important;
@@ -537,10 +490,6 @@ img {
   margin-left: auto;
 }
 
-.grouped-row-header .status {
-  flex-shrink: 0;
-}
-
 /* Indented subtest list with connector lines */
 .subtest-rows {
   --branch: 16px;
@@ -548,11 +497,10 @@ img {
   flex-direction: column;
   gap: 2px;
   padding-left: var(--branch);
-  margin-left: 4.5px;
+  margin-left: 8px;
   position: relative;
 }
 
-/* Vertical line connecting group header to subtests */
 .subtest-rows::before {
   content: "";
   position: absolute;
@@ -571,7 +519,6 @@ img {
   position: relative;
 }
 
-/* Vertical line running through each subtest */
 .subtest-row::before {
   content: "";
   position: absolute;
@@ -582,7 +529,6 @@ img {
   background: #e0e0e0;
 }
 
-/* Clip the vertical line at the last subtest */
 .subtest-row:last-child::before {
   bottom: auto;
   height: 12.5px;
@@ -595,7 +541,6 @@ img {
   position: relative;
 }
 
-/* Horizontal connector from the vertical rail to the dot */
 .subtest-row-header::before {
   content: "";
   position: absolute;
@@ -605,12 +550,6 @@ img {
   transform: translateY(-50%);
   height: 0.8px;
   background: #e0e0e0;
-}
-
-.subtest-row .status {
-  width: 7px;
-  height: 7px;
-  flex-shrink: 0;
 }
 
 .subtest-row > span {
@@ -628,7 +567,6 @@ img {
 
 /* ─── 10. BUTTONS ────────────────────────────────────── */
 
-/* — Primary (solid accent fill) — */
 .btn-primary {
   width: 50%;
   display: flex;
@@ -666,7 +604,6 @@ img {
   pointer-events: none;
 }
 
-/* — Secondary (ghost outline, full-width) — */
 .btn-secondary {
   width: 100%;
   display: flex;
@@ -691,12 +628,10 @@ img {
 .btn-secondary:active {
   background: var(--bg-surface);
 }
-
 .btn-secondary i {
   font-size: 14px;
 }
 
-/* — Ghost (used inside bottom sheets) — */
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
@@ -708,7 +643,6 @@ img {
   border-color: var(--border-strong);
 }
 
-/* — Inline trigger (vibrate, play sound, etc.) — */
 .btn-trigger {
   width: 100%;
   display: flex;
@@ -731,12 +665,10 @@ img {
 .btn-trigger:active {
   background: var(--bg-surface);
 }
-
 .btn-trigger i {
   font-size: 16px;
 }
 
-/* — Result pass / fail pair — */
 .dialog-buttons {
   display: flex;
   gap: var(--s3);
@@ -763,7 +695,6 @@ img {
 .btn-result:active {
   transform: scale(0.97);
 }
-
 .btn-result i {
   font-size: 16px;
 }
@@ -780,7 +711,7 @@ img {
   border: 1px solid var(--error-ring);
 }
 
-/* — Shared button internals (spinner / icon / label) — */
+/* Shared button internals */
 .btn-spinner {
   display: none;
   width: 15px;
@@ -800,7 +731,6 @@ img {
 .btn--loading .btn-spinner {
   display: block;
 }
-
 .btn--loading .btn-icon {
   display: none;
 }
@@ -816,40 +746,48 @@ img {
   line-height: 1;
 }
 
-/* ─── 11. STATUS DOTS ────────────────────────────────── */
-.status {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--r-pill);
+/* ─── 11. STATUS ICONS ───────────────────────────────── */
+
+.status-icon {
+  font-size: 16px;
   flex-shrink: 0;
-  transition:
-    background var(--dur-base),
-    box-shadow var(--dur-base);
   align-self: center;
+  line-height: 1;
+  transition: color var(--dur-base);
 }
 
-.status.pending {
-  background: transparent;
-  border: 1px solid var(--border-default);
+/* Smaller icons inside subtest rows */
+.subtest-row .status-icon,
+.subtest-row-header .status-icon {
+  font-size: 13px;
 }
 
-.status.success {
-  background: var(--success);
-  box-shadow: 0 0 0 3px var(--success-dim);
+.status-icon--pass {
+  color: var(--success);
+}
+.status-icon--fail {
+  color: var(--error);
+}
+.status-icon--partial {
+  color: var(--warn);
+}
+.status-icon--pending {
+  color: var(--border-default);
 }
 
-.status.inconclusive {
-  background: var(--warn);
-  box-shadow: 0 0 0 3px var(--warn-dim);
+/* Recording animation (kept for test states that need it) */
+@keyframes statusBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.28;
+  }
 }
 
-.status.failure {
-  background: var(--error);
-  box-shadow: 0 0 0 3px var(--error-dim);
-}
-
-.status.recording {
-  background: var(--error);
+.status-icon--recording {
+  color: var(--error);
   animation: statusBlink 1.1s ease-in-out infinite;
 }
 
@@ -870,7 +808,6 @@ img {
   transition: width 0.4s var(--ease-out);
 }
 
-/* Fixed top bar that counts down test duration */
 #timer-bar-container {
   position: fixed;
   top: 0;
@@ -899,7 +836,6 @@ img {
   -webkit-backdrop-filter: blur(4px);
 }
 
-/* Centered spinner shown on top of the overlay */
 .overlay::after {
   content: "";
   position: absolute;
@@ -934,7 +870,6 @@ img {
   gap: var(--s4);
 }
 
-/* Trigger the slide-up animation when JS sets display */
 .bottom-sheet[style*="display: block"],
 .bottom-sheet[style*="display:block"],
 .bottom-sheet[style*="display: flex"],
@@ -981,7 +916,6 @@ img {
   line-height: 1.5;
 }
 
-/* Microphone sheet extras */
 #mic-timer {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -1050,7 +984,6 @@ img {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Shared action button (retake / accept / reject) */
 .action-button {
   width: 52px;
   height: 52px;
@@ -1083,7 +1016,6 @@ img {
   color: var(--error);
 }
 
-/* Controls bar that fades in/out over the preview */
 .preview-controls {
   position: absolute;
   bottom: 0;
@@ -1117,8 +1049,6 @@ img {
 }
 
 /* ─── 16. FULLSCREEN DIALOGS — TOUCH / GYRO / COLOR ──── */
-
-/* Touch drawing canvas */
 .touch-canvas {
   width: 100%;
   height: 100%;
@@ -1133,7 +1063,6 @@ img {
   display: block;
 }
 
-/* Centered instruction overlay used in touch and gyro dialogs */
 .dialog-instructions {
   position: fixed;
   top: 50%;
@@ -1156,7 +1085,6 @@ img {
   max-width: 78vw;
 }
 
-/* "Clear" pill button fixed to the bottom of the touch dialog */
 .touch-clear {
   position: fixed;
   bottom: calc(var(--s5) + env(safe-area-inset-bottom, 0px));
@@ -1173,37 +1101,496 @@ img {
   z-index: 9999;
 }
 
-/* Color screen pass/fail button row */
 #color-confirm-buttons {
   display: flex;
   justify-content: space-around;
   align-items: center;
 }
 
-/* ─── 17. UTILITIES ──────────────────────────────────── */
+/* ─── 17. UTILITIES & SCROLLBAR ──────────────────────── */
 .hidden {
   display: none !important;
 }
-
 .greyed-out {
   color: var(--text-muted) !important;
 }
 
-/* ─── 18. SCROLLBAR ──────────────────────────────────── */
+/* Test count badge — used as sibling of .block-label */
+.test-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
 ::-webkit-scrollbar {
   width: 3px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: var(--border-subtle);
   border-radius: var(--r-pill);
 }
 
-/* ─── 19. ANIMATIONS / KEYFRAMES ─────────────────────── */
+/* ─── 18. BARCODE SHARE SECTION ──────────────────────── */
+.pulsar-bc-section {
+  grid-column: 1 / -1;
+  animation: sectionIn var(--dur-slow) var(--ease-out) both;
+}
+
+.bc-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: var(--s4);
+}
+
+/* Tabs */
+.bc-tabs {
+  display: flex;
+  gap: var(--s2);
+  margin-bottom: var(--s5);
+}
+
+.bc-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--s3);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast),
+    border-color var(--dur-fast),
+    color var(--dur-fast);
+}
+
+.bc-tab i {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bc-tab:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+}
+
+.bc-tab--active {
+  background: var(--accent-dim);
+  border-color: var(--accent-mid);
+  color: var(--accent);
+}
+
+/* Stage / panes */
+.bc-stage {
+  display: flex;
+  justify-content: center;
+  min-height: 260px;
+  margin-bottom: var(--s4);
+  align-items: center;
+}
+
+.bc-pane {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+}
+
+.bc-pane--active {
+  display: flex;
+}
+
+/* QR frame */
+.bc-qr-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: var(--r-lg);
+  padding: 12px;
+  box-shadow:
+    0 0 0 1px var(--border-subtle),
+    0 4px 24px rgba(0, 0, 0, 0.07);
+}
+
+#pulsar-qr-target img,
+#pulsar-qr-target canvas {
+  display: block;
+  border-radius: var(--r-sm);
+}
+
+/* Code 128 frame */
+.bc-c128-frame {
+  position: relative;
+  background: #fff;
+  border-radius: var(--r-lg);
+  padding: 12px;
+  box-shadow:
+    0 0 0 1px var(--border-subtle),
+    0 4px 24px rgba(0, 0, 0, 0.07);
+  max-width: 100%;
+}
+
+.bc-c128-scroll {
+  overflow-x: auto;
+  max-width: min(80vw, 540px);
+}
+
+.bc-c128-scroll svg {
+  display: block;
+  height: auto;
+  max-width: none;
+}
+
+.bc-sub-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bc-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s4) var(--s5);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.bc-spinner {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border-default);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+.bc-error {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 13px;
+  color: var(--error);
+  padding: var(--s4);
+}
+
+.bc-error i {
+  font-size: 16px;
+}
+
+/* Payload details */
+.bc-payload-details {
+  border-top: 1px solid var(--border-faint);
+  padding-top: var(--s3);
+  margin-top: var(--s2);
+}
+
+.bc-payload-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.bc-payload-summary::-webkit-details-marker {
+  display: none;
+}
+.bc-payload-summary i {
+  font-size: 13px;
+}
+
+.bc-chevron {
+  margin-left: auto;
+  transition: transform var(--dur-fast);
+}
+
+.bc-payload-details[open] .bc-chevron {
+  transform: rotate(180deg);
+}
+
+.bc-payload-body {
+  margin-top: var(--s3);
+  padding: var(--s2) var(--s3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+}
+
+#pulsar-payload-code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  word-break: break-all;
+  line-height: 1.65;
+  display: block;
+  user-select: all;
+}
+
+/* ─── 19. SCAN RESULTS MODAL ─────────────────────────── */
+#pulsar-scan-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s5);
+  pointer-events: none;
+}
+
+#pulsar-scan-modal.psm--visible {
+  pointer-events: auto;
+}
+
+.psm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 9, 9, 0.65);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+#pulsar-scan-modal.psm--visible .psm-backdrop {
+  opacity: 1;
+}
+
+.psm-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  max-height: calc(100dvh - (var(--s5) * 2));
+  overflow-y: auto;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl);
+  padding: var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  overscroll-behavior: contain;
+  transform: translateY(18px);
+  opacity: 0;
+  transition:
+    transform 0.38s var(--ease-out),
+    opacity 0.38s var(--ease-out);
+}
+
+#pulsar-scan-modal.psm--visible .psm-sheet {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.psm-close {
+  position: absolute;
+  top: var(--s4);
+  right: var(--s4);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-fast),
+    transform var(--dur-fast);
+}
+
+.psm-close:hover {
+  background: var(--bg-raised);
+}
+.psm-close:active {
+  transform: scale(0.92);
+}
+
+/* Header */
+.psm-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding-right: 40px;
+}
+
+.psm-header-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.psm-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.psm-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.psm-timestamp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* Summary badges — shared between modal and results count */
+.psm-summary {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.psm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.psm-badge i {
+  font-size: 13px;
+}
+
+.psm-badge--pass {
+  background: var(--success-dim);
+  color: var(--success);
+  border: 1px solid var(--success-ring);
+}
+
+.psm-badge--warn {
+  background: var(--warn-dim);
+  color: var(--warn);
+  border: 1px solid rgba(201, 146, 54, 0.22);
+}
+
+.psm-badge--fail {
+  background: var(--error-dim);
+  color: var(--error);
+  border: 1px solid var(--error-ring);
+}
+
+/* Plain text panel */
+.psm-plain-panel {
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+}
+
+.psm-plain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s3);
+  border-bottom: 1px solid var(--border-faint);
+  background: var(--bg-surface);
+  border-radius: var(--r-md) var(--r-md) 0 0;
+}
+
+.psm-plain-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.psm-plain-label i {
+  font-size: 13px;
+}
+
+.psm-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-mid);
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(130, 35, 210, 0.12);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast),
+    border-color var(--dur-fast),
+    color var(--dur-fast),
+    transform var(--dur-fast);
+}
+
+.psm-copy-btn:hover {
+  background: var(--accent-mid);
+}
+.psm-copy-btn:active {
+  transform: scale(0.96);
+}
+.psm-copy-btn i {
+  font-size: 13px;
+}
+
+.psm-plain-body {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  padding: var(--s3);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: all;
+}
+
+/* ─── 20. ANIMATIONS / KEYFRAMES ─────────────────────── */
 @keyframes sectionIn {
   from {
     opacity: 0;
@@ -1276,15 +1663,5 @@ img {
   to {
     transform: translateY(0);
     opacity: 1;
-  }
-}
-
-@keyframes statusBlink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.28;
   }
 }
