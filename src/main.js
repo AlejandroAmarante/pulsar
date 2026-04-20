@@ -319,6 +319,9 @@ class TestRunner {
 
     this.recalculateCounts();
     this.els.btnLabel.textContent = "Run Tests";
+
+    // Refresh the inline summary after a single re-run
+    this._refreshInlineSummary();
   }
 
   createTimeoutPromise() {
@@ -363,6 +366,60 @@ class TestRunner {
     }
   }
 
+  // ── Inline summary (below tests label) ───────────────────────────────────
+
+  _buildSummaryHTML(passed, partial, failed) {
+    return `
+      <div class="psm-badge psm-badge--pass">
+        <i class="ri-checkbox-circle-line"></i>
+        <strong>${passed}</strong> Passed
+      </div>
+      <div class="psm-badge psm-badge--warn">
+        <i class="ri-indeterminate-circle-line"></i>
+        <strong>${partial}</strong> Partial
+      </div>
+      <div class="psm-badge psm-badge--fail">
+        <i class="ri-close-circle-line"></i>
+        <strong>${failed}</strong> Failed
+      </div>
+    `;
+  }
+
+  _upsertInlineSummary(passed, partial, failed) {
+    const { testsLabel } = this.els;
+    const sectionHeader = testsLabel?.closest(".section-header");
+    if (!sectionHeader) return;
+
+    let summaryEl = document.getElementById("tests-results-summary");
+    if (!summaryEl) {
+      summaryEl = document.createElement("div");
+      summaryEl.id = "tests-results-summary";
+      summaryEl.className = "results-summary results-summary--inline";
+      sectionHeader.insertAdjacentElement("afterend", summaryEl);
+    }
+    summaryEl.innerHTML = this._buildSummaryHTML(passed, partial, failed);
+  }
+
+  _refreshInlineSummary() {
+    const leafSel = [
+      "#tests .subtest-row .status-icon",
+      "#tests .list-item-row:not(.grouped-row) > .status-icon",
+    ].join(", ");
+
+    const leafIcons = [...document.querySelectorAll(leafSel)];
+    const passed = leafIcons.filter((el) =>
+      el.classList.contains("status-icon--pass"),
+    ).length;
+    const failed = leafIcons.filter((el) =>
+      el.classList.contains("status-icon--fail"),
+    ).length;
+    const partial = leafIcons.filter((el) =>
+      el.classList.contains("status-icon--partial"),
+    ).length;
+
+    this._upsertInlineSummary(passed, partial, failed);
+  }
+
   // ── Results display ───────────────────────────────────────────────────────
 
   displayResults(results) {
@@ -382,25 +439,15 @@ class TestRunner {
     const passed = this.countLeafsByStatus(results, "success");
     const partial = this.countLeafsByStatus(results, "partial");
     const failed = this.countLeafsByStatus(results, "fail");
+    const total = passed + partial + failed;
 
+    // Header count: "14 / 14"
     if (this.els.testCount) {
-      this.els.testCount.innerHTML = `
-        <div class="results-summary">
-          <div class="psm-badge psm-badge--pass">
-            <i class="ri-checkbox-circle-line"></i>
-            <strong>${passed}</strong> Passed
-          </div>
-          <div class="psm-badge psm-badge--warn">
-            <i class="ri-indeterminate-circle-line"></i>
-            <strong>${partial}</strong> partial
-          </div>
-          <div class="psm-badge psm-badge--fail">
-            <i class="ri-close-circle-line"></i>
-            <strong>${failed}</strong> Failed
-          </div>
-        </div>
-      `;
+      this.els.testCount.textContent = `${total} / ${TOTAL_LEAF_COUNT}`;
     }
+
+    // Inline summary below the section header
+    this._upsertInlineSummary(passed, partial, failed);
 
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 
@@ -464,6 +511,9 @@ class TestRunner {
     const { testsLabel, testCount } = this.els;
     if (testsLabel) testsLabel.textContent = "Tests";
     if (testCount) testCount.innerHTML = "";
+
+    // Remove inline summary
+    document.getElementById("tests-results-summary")?.remove();
 
     this.initializeTestElements();
     this.cleanupTests();
