@@ -5,6 +5,7 @@
  */
 
 import { getDeviceInfo } from "./deviceInfo.js";
+import { initBrowserNotice } from "./browserNotice.js";
 import {
   TEST_CONFIGURATIONS,
   TOTAL_LEAF_COUNT,
@@ -520,9 +521,7 @@ class TestRunner {
 document.addEventListener("DOMContentLoaded", () => {
   window.scrollTo(0, 0);
   getDeviceInfo();
-
+  initBrowserNotice();
   const runner = new TestRunner();
   runner.initializeTestElements();
-
-  initScanListener();
 });
