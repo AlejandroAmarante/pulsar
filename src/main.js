@@ -568,10 +568,12 @@ class TestRunner {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
+// main.js — DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   window.scrollTo(0, 0);
   getDeviceInfo();
   initBrowserNotice();
   const runner = new TestRunner();
   runner.initializeTestElements();
+  initScanListener(); // ← this is missing
 });
