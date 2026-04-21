@@ -66,14 +66,14 @@ export async function getDeviceInfo() {
       value: `${screen.width} × ${screen.height}`,
       icon: "ri-fullscreen-line",
     },
-    Viewport: {
-      value: `${window.innerWidth} × ${window.innerHeight}`,
-      icon: "ri-layout-top-line",
-    },
-    "Pixel Ratio": {
-      value: `${window.devicePixelRatio.toFixed(2)}x`,
-      icon: "ri-focus-3-line",
-    },
+    // Viewport: {
+    //   value: `${window.innerWidth} × ${window.innerHeight}`,
+    //   icon: "ri-layout-top-line",
+    // },
+    // "Pixel Ratio": {
+    //   value: `${window.devicePixelRatio.toFixed(2)}x`,
+    //   icon: "ri-focus-3-line",
+    // },
     CPU: {
       value: navigator.hardwareConcurrency
         ? `${navigator.hardwareConcurrency} cores`
@@ -94,10 +94,10 @@ export async function getDeviceInfo() {
       value: conn?.effectiveType || "Unknown",
       icon: "ri-signal-cellular-3-line",
     },
-    Latency: {
-      value: conn?.rtt ? `${conn.rtt} ms` : "Unknown",
-      icon: "ri-timer-line",
-    },
+    // Latency: {
+    //   value: conn?.rtt ? `${conn.rtt} ms` : "Unknown",
+    //   icon: "ri-timer-line",
+    // },
     Bandwidth: {
       value: conn?.downlink ? `${conn.downlink} Mbps` : "Unknown",
       icon: "ri-arrow-up-down-line",

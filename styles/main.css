@@ -516,9 +516,9 @@ img {
   position: absolute;
   left: 0;
   bottom: 100%;
-  height: calc(var(--s2) + 3px);
+  height: calc(var(--s2) + 2px);
   width: 2px;
-  background: #ebebeb;
+  background: #f0efef;
 }
 
 .subtest-row {
@@ -536,12 +536,12 @@ img {
   top: -1px;
   bottom: -1px;
   width: 2px;
-  background: #ebebeb;
+  background: #f0efef;
 }
 
 .subtest-row:last-child::before {
   bottom: auto;
-  height: 12.5px;
+  height: 12px;
 }
 
 .subtest-row-header {
@@ -555,11 +555,11 @@ img {
   content: "";
   position: absolute;
   left: calc(-1 * var(--branch));
-  width: calc(var(--branch) - 2px);
+  width: calc(var(--branch) - 5px);
   top: 50%;
   transform: translateY(-50%);
   height: 2px;
-  background: #ebebeb;
+  background: #f0efef;
 }
 
 .subtest-row > span {
@@ -759,7 +759,7 @@ img {
 /* ─── 11. STATUS ICONS ───────────────────────────────── */
 
 .status-icon {
-  font-size: 16px;
+  font-size: 18px;
   flex-shrink: 0;
   align-self: center;
   line-height: 1;
@@ -778,7 +778,7 @@ img {
 /* Smaller icons inside subtest rows */
 .subtest-row .status-icon,
 .subtest-row-header .status-icon {
-  font-size: 13px;
+  font-size: 14px;
   /* 13px glyph + 2px each side = 17px */
   width: 11px;
   height: 11px;
@@ -1158,8 +1158,8 @@ img {
   width: min(92vw, 560px);
   display: flex;
   align-items: center;
-  gap: var(--s3);
-  padding: var(--s4);
+  gap: var(--s4);
+  padding: var(--s4) var(--s5);
   border-radius: var(--r-xl);
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--border-subtle);
@@ -1221,7 +1221,7 @@ img {
   width: 24px;
   height: 24px;
   border-radius: var(--r-pill);
-  background: var(--bg-hover);
+  background: var(--bg-surface);
   border: 1px solid var(--border-default);
   color: var(--text-secondary);
   font-size: 18px;
@@ -1236,7 +1236,7 @@ img {
 }
 
 .browser-notice__close:hover {
-  background: var(--bg-surface);
+  background: var(--bg-hover);
   color: var(--text-primary);
 }
 
@@ -1612,18 +1612,19 @@ img {
 }
 
 .psm-badge {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 5px;
   padding: 4px 10px;
   border-radius: var(--r-pill);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
 
 .psm-badge i {
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 400;
 }
 
 .psm-badge--pass {
