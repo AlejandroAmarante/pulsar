@@ -1,16 +1,15 @@
 /**
- * Color Screen Test
+ * color.test.js
  *
  * User confirms each color visually.
- *   All pass  → success
- *   Any fail  → fail
- * No partial path here — user is the sensor.
+ *   All pass → success
+ *   Any fail → fail
  */
 export async function testColorScreens() {
   return new Promise((resolve) => {
     const colorDialog = document.getElementById("color-dialog");
     const colorScreen = document.getElementById("color-screen");
-    const helpText = document.getElementById("help-text");
+    const helpText = document.getElementById("color-help-text");
     const confirmButtons = document.getElementById("color-confirm-buttons");
     const previewControls = document.getElementById("color-preview-controls");
     const yesButton = document.getElementById("color-yes");
@@ -32,24 +31,21 @@ export async function testColorScreens() {
       colorScreen.style.backgroundColor = COLORS[index].value;
       colorDialog.style.display = "block";
 
-      // Reset controls visibility each new colour
+      // Reset visibility each new colour
       controlsVisible = true;
-      confirmButtons.classList.remove("controls-hidden");
-      if (helpText) helpText.classList.remove("help-text-hidden");
-      if (previewControls)
-        previewControls.classList.remove("preview-controls-hidden");
+      confirmButtons.classList.remove("btn-group--hidden");
+      helpText?.classList.remove("hint--hidden");
+      previewControls?.classList.remove("preview-bar--hidden");
     }
 
     function toggleControls() {
       controlsVisible = !controlsVisible;
-      confirmButtons.classList.toggle("controls-hidden", !controlsVisible);
-      if (helpText)
-        helpText.classList.toggle("help-text-hidden", !controlsVisible);
-      if (previewControls)
-        previewControls.classList.toggle(
-          "preview-controls-hidden",
-          !controlsVisible,
-        );
+      confirmButtons.classList.toggle("btn-group--hidden", !controlsVisible);
+      helpText?.classList.toggle("hint--hidden", !controlsVisible);
+      previewControls?.classList.toggle(
+        "preview-bar--hidden",
+        !controlsVisible,
+      );
     }
 
     function advance(passed) {
@@ -73,6 +69,7 @@ export async function testColorScreens() {
         }
         return;
       }
+
       showColor(currentIndex);
     }
 

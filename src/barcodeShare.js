@@ -3,15 +3,10 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Cross-device barcode result sharing for Pulsar Device Diagnostics.
  *
- * Payload format:
- *   digits only
+ * Payload format — digits only:
+ *   0 = pass  |  1 = partial  |  2 = fail
  *
- *   0 = pass
- *   1 = partial
- *   2 = fail
- *
- * Example:
- *   012212201
+ * Example: 012212201
  *
  * The payload is positional. The receiving device maps each digit to its own
  * local test order, so both sides must be running the same Pulsar build/config.
@@ -32,11 +27,7 @@ const JSBARCODE_CDN =
 
 // ─── Status Helpers ───────────────────────────────────────────────────────────
 
-const STATUS_TO_DIGIT = {
-  success: "0",
-  partial: "1",
-  fail: "2",
-};
+const STATUS_TO_DIGIT = { success: "0", partial: "1", fail: "2" };
 
 const DIGIT_TO_DECODED = {
   0: { statusCode: "p", status: "Functional", cssClass: "pass" },
@@ -73,28 +64,15 @@ function flattenResults(results) {
   return out;
 }
 
-/**
- * Encode a results array into a compact positional payload.
- * Example: 012212201
- *
- * @param {Array} results
- * @returns {string}
- */
 export function encodeResults(results) {
-  const leaves = flattenResults(results);
-  return leaves.map((r) => STATUS_TO_DIGIT[r.status] ?? "1").join("");
+  return flattenResults(results)
+    .map((r) => STATUS_TO_DIGIT[r.status] ?? "1")
+    .join("");
 }
 
-/**
- * Decode and validate a raw scan string.
- *
- * @param {string} raw
- * @returns {{ timestamp: number, tests: Array } | null}
- */
 export function decodePayload(raw) {
   const s = String(raw ?? "").trim();
   if (!/^\d+$/.test(s)) return null;
-
   if (s.length !== LOCAL_TEST_ORDER.length) {
     console.debug("[Pulsar] Scan test-count mismatch — discarding");
     return null;
@@ -113,12 +91,6 @@ export function decodePayload(raw) {
   return { timestamp: Date.now(), tests };
 }
 
-/**
- * Convert the current local results into the decoded modal shape.
- *
- * @param {Array} results
- * @returns {{ timestamp: number, tests: Array }}
- */
 function resultsToDecoded(results) {
   const tests = flattenResults(results).map((r, index) => {
     const meta =
@@ -130,7 +102,6 @@ function resultsToDecoded(results) {
       cssClass: meta.cssClass,
     };
   });
-
   return { timestamp: Date.now(), tests };
 }
 
@@ -138,7 +109,6 @@ function resultsToDecoded(results) {
 
 function loadScript(src, globalName) {
   if (window[globalName]) return Promise.resolve();
-
   return new Promise((resolve, reject) => {
     const el = document.createElement("script");
     el.src = src;
@@ -148,95 +118,91 @@ function loadScript(src, globalName) {
   });
 }
 
-// ─── Barcode Section Rendering ────────────────────────────────────────────────
+// ─── Share Section Rendering ──────────────────────────────────────────────────
 
-/**
- * Renders the share panel containing Code 128 and QR views.
- *
- * @param {Array} results
- * @param {HTMLElement} afterEl
- */
 export async function renderBarcodeSection(results, afterEl) {
-  document.getElementById("pulsar-barcode-section")?.remove();
+  document.getElementById("share-section")?.remove();
 
   const payload = encodeResults(results);
   const decodedForModal = resultsToDecoded(results);
 
   const section = document.createElement("section");
-  section.id = "pulsar-barcode-section";
-  section.className = "section panel pulsar-bc-section";
+  section.id = "share-section";
+  section.className = "panel__inner panel share-section";
 
   section.innerHTML = `
-    <div class="section-header section-header--single">
-      <div class="block-label">
+    <div class="panel__head panel__head--flush">
+      <div class="label">
         <i class="ri-share-line" style="font-size:14px;line-height:1"></i>
         Share Results
       </div>
     </div>
 
-    <p class="bc-hint">
+    <p class="share__hint">
       Scan this code on any device running Pulsar to load these results instantly.
     </p>
 
-    <div class="bc-tabs" role="tablist" aria-label="Barcode type">
-      <button class="bc-tab bc-tab--active" data-tab="c128" role="tab" aria-selected="true">
+    <div class="share__tabs" role="tablist" aria-label="Barcode type">
+      <button class="share__tab share__tab--active" data-tab="barcode" role="tab" aria-selected="true">
         <i class="ri-barcode-line"></i> Code 128
       </button>
-      <button class="bc-tab" data-tab="qr" role="tab" aria-selected="false">
+      <button class="share__tab" data-tab="qr" role="tab" aria-selected="false">
         <i class="ri-qr-code-line"></i> QR Code
       </button>
     </div>
 
-    <div class="bc-stage">
-      <div id="bc-pane-c128" class="bc-pane bc-pane--active" role="tabpanel">
+    <div class="share__stage">
+      <div id="share-pane-barcode" class="share__pane share__pane--active" role="tabpanel">
         <div
-          class="bc-c128-frame"
-          id="bc-c128-frame"
+          class="share__barcode"
+          id="share-barcode-frame"
           role="button"
           tabindex="0"
           aria-label="Open diagnostic results"
           title="Click to open results"
         >
-          <div class="bc-loading" id="bc-c128-loading">
-            <div class="bc-spinner"></div>
+          <div class="share__loading" id="share-barcode-loading">
+            <div class="share__spinner"></div>
             <span>Generating barcode…</span>
           </div>
-          <div class="bc-c128-scroll">
-            <svg id="pulsar-c128-svg"></svg>
+          <div class="share__barcode-scroll">
+            <svg id="share-barcode-svg"></svg>
           </div>
         </div>
-        <p class="bc-sub-label">Click or tap to view results. For hardware wedge scanners</p>
+        
       </div>
 
-      <div id="bc-pane-qr" class="bc-pane" role="tabpanel" hidden>
-        <div class="bc-qr-frame">
-          <div class="bc-loading" id="bc-qr-loading">
-            <div class="bc-spinner"></div>
+      <div id="share-pane-qr" class="share__pane" role="tabpanel" hidden>
+        <div class="share__qr">
+          <div class="share__loading" id="share-qr-loading">
+            <div class="share__spinner"></div>
             <span>Generating QR code…</span>
           </div>
-          <div id="pulsar-qr-target"></div>
+          <div id="share-qr-target"></div>
         </div>
-        <p class="bc-sub-label">Scan with any camera app</p>
+  
       </div>
     </div>
 
-    <details class="bc-payload-details">
-      <summary class="bc-payload-summary">
+    <details class="share__payload">
+      <summary class="share__payload-toggle">
         <i class="ri-code-line"></i> Encoded payload
-        <i class="ri-arrow-down-s-line bc-chevron"></i>
+        <i class="ri-arrow-down-s-line share__chevron"></i>
       </summary>
-      <div class="bc-payload-body">
-        <code id="pulsar-payload-code">${escHtml(payload)}</code>
+      <div class="share__payload-body">
+        <code id="share-payload-code">${escHtml(payload)}</code>
       </div>
     </details>
   `;
 
   afterEl.insertAdjacentElement("afterend", section);
 
-  const tabs = section.querySelectorAll(".bc-tab");
+  // ── Tab switching ──────────────────────────────────────────────────────────
+
+  const tabs = section.querySelectorAll(".share__tab");
   const panes = {
-    c128: section.querySelector("#bc-pane-c128"),
-    qr: section.querySelector("#bc-pane-qr"),
+    barcode: section.querySelector("#share-pane-barcode"),
+    qr: section.querySelector("#share-pane-qr"),
   };
 
   tabs.forEach((btn) => {
@@ -244,13 +210,13 @@ export async function renderBarcodeSection(results, afterEl) {
       const tab = btn.dataset.tab;
 
       tabs.forEach((b) => {
-        b.classList.toggle("bc-tab--active", b === btn);
+        b.classList.toggle("share__tab--active", b === btn);
         b.setAttribute("aria-selected", b === btn ? "true" : "false");
       });
 
       Object.entries(panes).forEach(([key, pane]) => {
         const active = key === tab;
-        pane.classList.toggle("bc-pane--active", active);
+        pane.classList.toggle("share__pane--active", active);
         active
           ? pane.removeAttribute("hidden")
           : pane.setAttribute("hidden", "");
@@ -258,16 +224,20 @@ export async function renderBarcodeSection(results, afterEl) {
     });
   });
 
-  const c128Frame = section.querySelector("#bc-c128-frame");
-  const openLocalResultsModal = () => showScanModal(decodedForModal);
+  // ── Barcode frame click → open local results modal ─────────────────────────
 
-  c128Frame.addEventListener("click", openLocalResultsModal);
-  c128Frame.addEventListener("keydown", (e) => {
+  const barcodeFrame = section.querySelector("#share-barcode-frame");
+  const openLocalResults = () => showScanModal(decodedForModal);
+
+  barcodeFrame.addEventListener("click", openLocalResults);
+  barcodeFrame.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      openLocalResultsModal();
+      openLocalResults();
     }
   });
+
+  // ── Render barcodes ────────────────────────────────────────────────────────
 
   try {
     await Promise.all([
@@ -275,8 +245,8 @@ export async function renderBarcodeSection(results, afterEl) {
       loadScript(JSBARCODE_CDN, "JsBarcode"),
     ]);
 
-    section.querySelector("#bc-c128-loading").style.display = "none";
-    window.JsBarcode("#pulsar-c128-svg", payload, {
+    section.querySelector("#share-barcode-loading").style.display = "none";
+    window.JsBarcode("#share-barcode-svg", payload, {
       format: "CODE128",
       lineColor: "#1b1c1f",
       width: 1.5,
@@ -286,8 +256,8 @@ export async function renderBarcodeSection(results, afterEl) {
       background: "#ffffff",
     });
 
-    section.querySelector("#bc-qr-loading").style.display = "none";
-    new window.QRCode(section.querySelector("#pulsar-qr-target"), {
+    section.querySelector("#share-qr-loading").style.display = "none";
+    new window.QRCode(section.querySelector("#share-qr-target"), {
       text: payload,
       width: 224,
       height: 224,
@@ -297,9 +267,11 @@ export async function renderBarcodeSection(results, afterEl) {
     });
   } catch (err) {
     console.error("[Pulsar] Barcode render failed:", err);
-    section.querySelector(".bc-stage").innerHTML = `
-      <p class="bc-error"><i class="ri-error-warning-line"></i>
-      Barcode generation unavailable — check network connection.</p>
+    section.querySelector(".share__stage").innerHTML = `
+      <p class="share__error">
+        <i class="ri-error-warning-line"></i>
+        Barcode generation unavailable — check network connection.
+      </p>
     `;
   }
 }
@@ -315,9 +287,7 @@ export function initScanListener() {
     clearTimeout(silenceTimer);
     const captured = buf;
     buf = "";
-
     if (captured.length < MIN_SCAN_LENGTH) return;
-
     const data = decodePayload(captured);
     if (data) showScanModal(data);
   }
@@ -347,7 +317,6 @@ export function initScanListener() {
       lastCharAt = now;
 
       if (buf.length > 0 && gap > CHAR_GAP_MS) buf = "";
-
       buf += e.key;
 
       clearTimeout(silenceTimer);
@@ -375,37 +344,28 @@ function buildPlainText(decoded) {
     minute: "2-digit",
   });
 
-  const lines = [
+  return [
     "--Pulsar Device Diagnostic Results--",
     `Scanned: ${ts}`,
     "",
     ...decoded.tests.map((t) => `${t.name}: ${t.status}`),
     "",
     "--------------------------------------",
-  ];
-
-  return lines.join("\n");
+  ].join("\n");
 }
 
 function escHtml(s) {
   return String(s).replace(
     /[&<>"']/g,
     (m) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[m],
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        m
+      ],
   );
 }
 
-/**
- * Opens the scan-results modal.
- */
 export function showScanModal(decoded) {
-  document.getElementById("pulsar-scan-modal")?.remove();
+  document.getElementById("scan-modal")?.remove();
 
   const plainText = buildPlainText(decoded);
   const passed = decoded.tests.filter((t) => t.statusCode === "p").length;
@@ -413,55 +373,56 @@ export function showScanModal(decoded) {
   const partial = decoded.tests.filter((t) => t.statusCode === "i").length;
 
   const modal = document.createElement("div");
-  modal.id = "pulsar-scan-modal";
+  modal.id = "scan-modal";
+  modal.className = "scan-modal";
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
-  modal.setAttribute("aria-labelledby", "psm-title");
+  modal.setAttribute("aria-labelledby", "scan-modal-title");
 
   modal.innerHTML = `
-    <div class="psm-backdrop" id="psm-backdrop"></div>
+    <div class="scan-modal__backdrop" id="scan-modal-backdrop"></div>
 
-    <div class="psm-sheet" role="document">
-      <button class="psm-close" id="psm-close" aria-label="Close results">
+    <div class="scan-modal__card" role="document">
+      <button class="scan-modal__close" id="scan-modal-close" aria-label="Close results">
         <i class="ri-close-line"></i>
       </button>
 
-      <div class="psm-header">
-        <div class="psm-header-icon-wrap">
+      <div class="scan-modal__head">
+        <div class="scan-modal__icon">
           <i class="ri-qr-scan-2-line"></i>
         </div>
-        <div class="psm-header-text">
-          <h2 class="psm-title" id="psm-title">Pulsar Device Diagnostic Results</h2>
-          <p class="psm-timestamp">${escHtml(new Date(decoded.timestamp).toLocaleString())}</p>
+        <div class="scan-modal__meta">
+          <h2 class="scan-modal__title" id="scan-modal-title">Pulsar Device Diagnostic Results</h2>
+          <p class="scan-modal__time">${escHtml(new Date(decoded.timestamp).toLocaleString())}</p>
         </div>
       </div>
 
-      <div class="psm-summary" role="status" aria-label="Summary">
-        <div class="psm-badge psm-badge--pass">
+      <div class="scan-modal__summary" role="status" aria-label="Summary">
+        <div class="badge badge--pass">
           <i class="ri-checkbox-circle-line"></i>
           <strong>${passed}</strong> Passed
         </div>
-        <div class="psm-badge psm-badge--warn">
+        <div class="badge badge--warn">
           <i class="ri-indeterminate-circle-line"></i>
           <strong>${partial}</strong> Partial
         </div>
-        <div class="psm-badge psm-badge--fail">
+        <div class="badge badge--fail">
           <i class="ri-close-circle-line"></i>
           <strong>${failed}</strong> Failed
         </div>
       </div>
 
-      <div class="psm-plain-panel">
-        <div class="psm-plain-header">
-          <span class="psm-plain-label">
+      <div class="scan-modal__output">
+        <div class="scan-modal__output-head">
+          <span class="scan-modal__output-label">
             <i class="ri-file-text-line"></i> Plain Text
           </span>
-          <button class="psm-copy-btn" id="psm-copy-btn" title="Copy to clipboard">
+          <button class="btn-copy" id="scan-modal-copy" title="Copy to clipboard">
             <i class="ri-clipboard-line"></i>
-            <span class="psm-copy-label">Copy</span>
+            <span class="btn-copy__label">Copy</span>
           </button>
         </div>
-        <pre class="psm-plain-body" id="psm-plain-body"
+        <pre class="scan-modal__text" id="scan-modal-text"
           aria-label="Copyable plain-text results">${escHtml(plainText)}</pre>
       </div>
     </div>
@@ -469,25 +430,25 @@ export function showScanModal(decoded) {
 
   document.body.appendChild(modal);
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => modal.classList.add("psm--visible"));
-  });
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => modal.classList.add("scan-modal--open")),
+  );
 
-  modal.querySelector("#psm-close")?.focus();
+  modal.querySelector("#scan-modal-close")?.focus();
 
   function close() {
-    modal.classList.remove("psm--visible");
+    modal.classList.remove("scan-modal--open");
     modal.addEventListener(
       "transitionend",
       () => {
-        if (!modal.classList.contains("psm--visible")) modal.remove();
+        if (!modal.classList.contains("scan-modal--open")) modal.remove();
       },
       { once: true },
     );
   }
 
-  modal.querySelector("#psm-close").addEventListener("click", close);
-  modal.querySelector("#psm-backdrop").addEventListener("click", close);
+  modal.querySelector("#scan-modal-close").addEventListener("click", close);
+  modal.querySelector("#scan-modal-backdrop").addEventListener("click", close);
 
   const escHandler = (e) => {
     if (e.key === "Escape") {
@@ -497,49 +458,49 @@ export function showScanModal(decoded) {
   };
   document.addEventListener("keydown", escHandler);
 
-  modal.querySelector("#psm-copy-btn").addEventListener("click", async () => {
-    const btn = modal.querySelector("#psm-copy-btn");
+  modal
+    .querySelector("#scan-modal-copy")
+    .addEventListener("click", async () => {
+      const btn = modal.querySelector("#scan-modal-copy");
 
-    try {
-      await navigator.clipboard.writeText(plainText);
-    } catch {
-      const ta = Object.assign(document.createElement("textarea"), {
-        value: plainText,
-        readOnly: true,
-      });
-      Object.assign(ta.style, {
-        position: "fixed",
-        top: "0",
-        left: "0",
-        opacity: "0",
-        pointerEvents: "none",
-      });
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      document.execCommand("copy");
-      ta.remove();
-    }
+      try {
+        await navigator.clipboard.writeText(plainText);
+      } catch {
+        const ta = Object.assign(document.createElement("textarea"), {
+          value: plainText,
+          readOnly: true,
+        });
+        Object.assign(ta.style, {
+          position: "fixed",
+          top: "0",
+          left: "0",
+          opacity: "0",
+          pointerEvents: "none",
+        });
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
 
-    btn.innerHTML =
-      '<i class="ri-check-line"></i><span class="psm-copy-label">Copied!</span>';
-    btn.style.background = "var(--success-dim)";
-    btn.style.borderColor = "var(--success-ring)";
-    btn.style.color = "var(--success)";
-
-    setTimeout(() => {
       btn.innerHTML =
-        '<i class="ri-clipboard-line"></i><span class="psm-copy-label">Copy</span>';
-      btn.style.cssText = "";
-    }, 2400);
-  });
+        '<i class="ri-check-line"></i><span class="btn-copy__label">Copied!</span>';
+      btn.style.background = "var(--success-dim)";
+      btn.style.borderColor = "var(--success-ring)";
+      btn.style.color = "var(--success)";
+
+      setTimeout(() => {
+        btn.innerHTML =
+          '<i class="ri-clipboard-line"></i><span class="btn-copy__label">Copy</span>';
+        btn.style.cssText = "";
+      }, 2400);
+    });
 }
 
 // ─── Public Init ──────────────────────────────────────────────────────────────
 
 export async function initBarcodeSharing(results) {
   const testsSection = document.getElementById("tests-section");
-  if (testsSection) {
-    await renderBarcodeSection(results, testsSection);
-  }
+  if (testsSection) await renderBarcodeSection(results, testsSection);
 }

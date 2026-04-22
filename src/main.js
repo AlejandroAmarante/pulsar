@@ -13,7 +13,6 @@ import {
   cleanupTouchTest,
 } from "./tests/index.js";
 
-// ── BARCODE SHARING ───────────────────────────────────────────────────────────
 import { initBarcodeSharing, initScanListener } from "./barcodeShare.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -33,24 +32,21 @@ const DIALOG_IDS = [
 // ─── Status Icon Helpers ──────────────────────────────────────────────────────
 
 const STATUS_ICON_MAP = {
-  success: { icon: "ri-checkbox-circle-line", mod: "status-icon--pass" },
-  fail: { icon: "ri-close-circle-line", mod: "status-icon--fail" },
-  partial: {
-    icon: "ri-indeterminate-circle-line",
-    mod: "status-icon--partial",
-  },
-  _pending: { icon: "ri-record-circle-line", mod: "status-icon--pending" },
+  success: { icon: "ri-checkbox-circle-line", mod: "status--pass" },
+  fail: { icon: "ri-close-circle-line", mod: "status--fail" },
+  partial: { icon: "ri-indeterminate-circle-line", mod: "status--partial" },
+  _pending: { icon: "ri-record-circle-line", mod: "status--pending" },
 };
 
 function statusIconEl(status) {
   const { icon, mod } = STATUS_ICON_MAP[status] ?? STATUS_ICON_MAP._pending;
-  return `<i class="status-icon ${icon} ${mod}" aria-hidden="true"></i>`;
+  return `<i class="status ${icon} ${mod}" aria-hidden="true"></i>`;
 }
 
 function applyStatusIcon(el, status) {
   if (!el) return;
   const { icon, mod } = STATUS_ICON_MAP[status] ?? STATUS_ICON_MAP._pending;
-  el.className = `status-icon ${icon} ${mod}`;
+  el.className = `status ${icon} ${mod}`;
 }
 
 // ─── TestRunner ───────────────────────────────────────────────────────────────
@@ -65,7 +61,7 @@ class TestRunner {
   cacheDOMElements() {
     return {
       startButton: document.getElementById("start-test"),
-      btnLabel: document.querySelector("#start-test .btn-label"),
+      btnLabel: document.querySelector("#start-test .btn__label"),
       testsContainer: document.getElementById("tests"),
       testsLabel: document.getElementById("tests-label"),
       testCount: document.getElementById("test-count"),
@@ -99,10 +95,10 @@ class TestRunner {
     startButton.disabled = isRunning;
 
     if (isRunning) {
-      startButton.classList.add("btn--loading");
+      startButton.classList.add("btn--busy");
       btnLabel.textContent = testName || "Running…";
     } else {
-      startButton.classList.remove("btn--loading");
+      startButton.classList.remove("btn--busy");
       btnLabel.textContent = "Run Tests";
     }
   }
@@ -167,30 +163,26 @@ class TestRunner {
           completedLeafs++;
 
           const rowEl = row();
-          let subRowsContainer = rowEl?.querySelector(".subtest-rows");
-          if (!subRowsContainer && rowEl) {
-            subRowsContainer = document.createElement("div");
-            subRowsContainer.className = "subtest-rows";
-            rowEl
-              .querySelector(".grouped-row-content")
-              .appendChild(subRowsContainer);
+          let subtestsContainer = rowEl?.querySelector(".subtests");
+          if (!subtestsContainer && rowEl) {
+            subtestsContainer = document.createElement("div");
+            subtestsContainer.className = "subtests";
+            rowEl.querySelector(".row__body").appendChild(subtestsContainer);
           }
 
-          if (subRowsContainer) {
-            const subRow = document.createElement("div");
-            subRow.className = "subtest-row";
-            subRow.dataset.subtestName = subtest.name;
-            subRow.innerHTML = `
+          if (subtestsContainer) {
+            const subEl = document.createElement("div");
+            subEl.className = "subtest";
+            subEl.dataset.subtestName = subtest.name;
+            subEl.innerHTML = `
               ${statusIconEl(result.status)}
               <span>${subtest.name}</span>
             `;
-            subRowsContainer.appendChild(subRow);
+            subtestsContainer.appendChild(subEl);
           }
 
           const aggNow = aggregateStatus(subtestResults);
-          const mainIcon = row()?.querySelector(
-            ".grouped-row-header .status-icon",
-          );
+          const mainIcon = row()?.querySelector(".row__header .status");
           applyStatusIcon(mainIcon, aggNow);
 
           this.updateLeafCount(completedLeafs);
@@ -212,7 +204,7 @@ class TestRunner {
         this.progressTimer.stop();
         completedLeafs++;
 
-        const statusIcon = row()?.querySelector(".status-icon");
+        const statusIcon = row()?.querySelector(".status");
         applyStatusIcon(statusIcon, result.status);
 
         results.push(result);
@@ -284,11 +276,11 @@ class TestRunner {
           `[data-test-index="${index}"]`,
         );
         const subIcon = row?.querySelector(
-          `.subtest-row[data-subtest-name="${subtest.name}"] .status-icon`,
+          `.subtest[data-subtest-name="${subtest.name}"] .status`,
         );
         applyStatusIcon(subIcon, r.status);
 
-        const mainIcon = row?.querySelector(".grouped-row-header .status-icon");
+        const mainIcon = row?.querySelector(".row__header .status");
         applyStatusIcon(mainIcon, aggregateStatus(subtestResults));
       }
 
@@ -319,8 +311,6 @@ class TestRunner {
 
     this.recalculateCounts();
     this.els.btnLabel.textContent = "Run Tests";
-
-    // Refresh the inline summary after a single re-run
     this._refreshInlineSummary();
   }
 
@@ -349,16 +339,16 @@ class TestRunner {
 
   recalculateCounts() {
     const leafSel = [
-      "#tests .subtest-row .status-icon",
-      "#tests .list-item-row:not(.grouped-row) > .status-icon",
+      "#tests .subtest .status",
+      "#tests .row:not(.row--group) > .status",
     ].join(", ");
 
     const leafIcons = [...document.querySelectorAll(leafSel)];
     const completed = leafIcons.filter(
       (el) =>
-        el.classList.contains("status-icon--pass") ||
-        el.classList.contains("status-icon--fail") ||
-        el.classList.contains("status-icon--partial"),
+        el.classList.contains("status--pass") ||
+        el.classList.contains("status--fail") ||
+        el.classList.contains("status--partial"),
     ).length;
 
     if (this.els.testCount) {
@@ -366,19 +356,19 @@ class TestRunner {
     }
   }
 
-  // ── Inline summary (below tests label) ───────────────────────────────────
+  // ── Inline summary ────────────────────────────────────────────────────────
 
   _buildSummaryHTML(passed, partial, failed) {
     return `
-      <div class="psm-badge psm-badge--pass">
+      <div class="badge badge--pass">
         <i class="ri-checkbox-circle-line"></i>
         <strong>${passed}</strong> Passed
       </div>
-      <div class="psm-badge psm-badge--warn">
+      <div class="badge badge--warn">
         <i class="ri-indeterminate-circle-line"></i>
         <strong>${partial}</strong> Partial
       </div>
-      <div class="psm-badge psm-badge--fail">
+      <div class="badge badge--fail">
         <i class="ri-close-circle-line"></i>
         <strong>${failed}</strong> Failed
       </div>
@@ -387,14 +377,14 @@ class TestRunner {
 
   _upsertInlineSummary(passed, partial, failed) {
     const { testsLabel } = this.els;
-    const sectionHeader = testsLabel?.closest(".section-header");
+    const sectionHeader = testsLabel?.closest(".panel__head");
     if (!sectionHeader) return;
 
-    let summaryEl = document.getElementById("tests-results-summary");
+    let summaryEl = document.getElementById("tests-summary");
     if (!summaryEl) {
       summaryEl = document.createElement("div");
-      summaryEl.id = "tests-results-summary";
-      summaryEl.className = "results-summary results-summary--inline";
+      summaryEl.id = "tests-summary";
+      summaryEl.className = "summary summary--inline";
       sectionHeader.insertAdjacentElement("afterend", summaryEl);
     }
     summaryEl.innerHTML = this._buildSummaryHTML(passed, partial, failed);
@@ -402,19 +392,19 @@ class TestRunner {
 
   _refreshInlineSummary() {
     const leafSel = [
-      "#tests .subtest-row .status-icon",
-      "#tests .list-item-row:not(.grouped-row) > .status-icon",
+      "#tests .subtest .status",
+      "#tests .row:not(.row--group) > .status",
     ].join(", ");
 
     const leafIcons = [...document.querySelectorAll(leafSel)];
     const passed = leafIcons.filter((el) =>
-      el.classList.contains("status-icon--pass"),
+      el.classList.contains("status--pass"),
     ).length;
     const failed = leafIcons.filter((el) =>
-      el.classList.contains("status-icon--fail"),
+      el.classList.contains("status--fail"),
     ).length;
     const partial = leafIcons.filter((el) =>
-      el.classList.contains("status-icon--partial"),
+      el.classList.contains("status--partial"),
     ).length;
 
     this._upsertInlineSummary(passed, partial, failed);
@@ -433,24 +423,20 @@ class TestRunner {
     this.updateButtonState(false);
     this.els.btnLabel.textContent = "Re-run Tests";
 
-    const btnIcon = this.els.startButton.querySelector(".btn-icon");
-    if (btnIcon) btnIcon.className = "ri-loop-right-line btn-icon";
+    const btnIcon = this.els.startButton.querySelector(".btn__icon");
+    if (btnIcon) btnIcon.className = "ri-loop-right-line btn__icon";
 
     const passed = this.countLeafsByStatus(results, "success");
     const partial = this.countLeafsByStatus(results, "partial");
     const failed = this.countLeafsByStatus(results, "fail");
     const total = passed + partial + failed;
 
-    // Header count: "14 / 14"
     if (this.els.testCount) {
       this.els.testCount.textContent = `${total} / ${TOTAL_LEAF_COUNT}`;
     }
 
-    // Inline summary below the section header
     this._upsertInlineSummary(passed, partial, failed);
-
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-
     initBarcodeSharing(results);
   }
 
@@ -469,38 +455,38 @@ class TestRunner {
       const subtestRows = result.subtests
         .map(
           (sub) => `
-          <div class="subtest-row" data-subtest-name="${sub.name}">
-            <div class="subtest-row-header">
+          <div class="subtest" data-subtest-name="${sub.name}">
+            <div class="subtest__header">
               ${statusIconEl(sub.status)}
               <strong>${sub.name}</strong>
             </div>
-            <span class="result-detail">${sub.details}</span>
+            <span class="row__detail">${sub.details}</span>
           </div>`,
         )
         .join("");
 
       return `
-      <div class="list-item-row result-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
-        <div class="grouped-row-content">
-          <div class="grouped-row-header">
+      <div class="row row--result row--group" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
+        <div class="row__body">
+          <div class="row__header">
             ${statusIconEl(result.status)}
             <strong>${result.name}</strong>
-            <i class="ri-loop-right-line row-icon"></i>
+            <i class="ri-loop-right-line row__action"></i>
           </div>
-          <div class="subtest-rows">${subtestRows}</div>
+          <div class="subtests">${subtestRows}</div>
         </div>
       </div>`;
     }
 
     return `
-    <div class="list-item-row result-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
-      <div class="result-row-content">
-        <div class="result-row-header">
+    <div class="row row--result" data-test-index="${index}" role="button" tabindex="0" aria-label="Re-run ${result.name}">
+      <div class="row__body">
+        <div class="row__header">
           ${statusIconEl(result.status)}
           <strong>${result.name}</strong>
-          <i class="ri-loop-right-line row-icon"></i>
+          <i class="ri-loop-right-line row__action"></i>
         </div>
-        <span class="result-detail">${result.details}</span>
+        <span class="row__detail">${result.details}</span>
       </div>
     </div>`;
   }
@@ -512,14 +498,13 @@ class TestRunner {
     if (testsLabel) testsLabel.textContent = "Tests";
     if (testCount) testCount.innerHTML = "";
 
-    // Remove inline summary
-    document.getElementById("tests-results-summary")?.remove();
+    document.getElementById("tests-summary")?.remove();
 
     this.initializeTestElements();
     this.cleanupTests();
     this.hideAllDialogs();
 
-    document.getElementById("pulsar-barcode-section")?.remove();
+    document.getElementById("share-section")?.remove();
 
     getDeviceInfo();
   }
@@ -529,22 +514,22 @@ class TestRunner {
       (cfg, index) => {
         if (cfg.grouped) {
           return `
-        <div class="list-item-row grouped-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
-          <div class="grouped-row-content">
-            <div class="grouped-row-header">
+        <div class="row row--group" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
+          <div class="row__body">
+            <div class="row__header">
               ${statusIconEl("_pending")}
               <span>${cfg.name}</span>
-              <i class="ri-play-fill row-icon"></i>
+              <i class="ri-play-fill row__action"></i>
             </div>
           </div>
         </div>`;
         }
 
         return `
-      <div class="list-item-row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
+      <div class="row" data-test-index="${index}" role="button" tabindex="0" aria-label="Run ${cfg.name}">
         ${statusIconEl("_pending")}
         <span>${cfg.name}</span>
-        <i class="ri-play-fill row-icon"></i>
+        <i class="ri-play-fill row__action"></i>
       </div>`;
       },
     ).join("");
@@ -568,12 +553,11 @@ class TestRunner {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
-// main.js — DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   window.scrollTo(0, 0);
   getDeviceInfo();
   initBrowserNotice();
   const runner = new TestRunner();
   runner.initializeTestElements();
-  initScanListener(); // ← this is missing
+  initScanListener();
 });

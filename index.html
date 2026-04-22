@@ -3,150 +3,142 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#090909">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f6f6f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Pulsar · Device Diagnostics</title>
     <link rel="icon" type="image/x-icon" href="imgs/favicon.svg">
     <link rel="manifest" href="manifest.json">
 
-    <!-- Fonts: Plus Jakarta Sans (body/headings) + JetBrains Mono (data) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
 
-    <!-- Remix Icon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.1/fonts/remixicon.css" rel="stylesheet">
-
     <link rel="stylesheet" href="./styles/main.css">
 </head>
 
 <body>
 
-    <div class="page-shell">
-        <!-- ── DEVICE HEADER ───────────────────────────── -->
+    <div class="app">
 
-        <header class="app-header">
-            <div class="logo-mark" aria-hidden="true">
-                <svg class="ekg-svg" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none"
+        <!-- ── HEADER ─────────────────────────────────────── -->
+        <header class="header">
+            <div class="brand__mark" aria-hidden="true">
+                <svg class="brand__ekg" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none"
                     aria-hidden="true">
                     <polyline points="0,28 7,28 10,26 14,28 17,28 19,31 23,7 27,38 31,28 35,30 40,28 48,28"
                         stroke="#8223d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </div>
 
-            <div class="logo-text">
-                <span class="logo-name">PULSAR</span>
-                <span class="logo-sub">Device </br> Diagnostics</span>
+            <div class="brand__text">
+                <span class="brand__name">PULSAR</span>
+                <span class="brand__sub">Device<br>Diagnostics</span>
             </div>
-            <button id="start-test" class="btn-primary btn-header">
-                <span class="btn-spinner"></span>
-                <i class="ri-play-fill btn-icon"></i>
-                <span class="btn-label">Run Tests</span>
+
+            <button id="start-test" class="btn-primary">
+                <span class="btn__spinner"></span>
+                <i class="ri-play-fill btn__icon"></i>
+                <span class="btn__label">Run Tests</span>
             </button>
         </header>
 
+        <!-- ── MAIN CONTENT ───────────────────────────────── -->
+        <main class="grid" aria-label="Calibration dashboard">
 
-        <!-- ── MAIN CONTENT ─────────────────────────────── -->
-        <main class="content-grid" aria-label="Calibration dashboard">
-            <!-- ── DEVICE INFO + ACTIONS ────────────────── -->
-            <section class="section panel" id="device-section">
-                <div class="section-header section-header--single">
-                    <div class="block-label">Device Info</div>
+            <!-- Device info -->
+            <section class="panel__inner panel" id="device-section">
+                <div class="panel__head panel__head--flush">
+                    <div class="label">Device Info</div>
                 </div>
-
-                <div class="device-block">
-                    <div id="device-info"></div>
-                </div>
+                <div id="device-info"></div>
             </section>
 
-            <!-- ── TESTS ─────────────────────────────────── -->
-            <section class="section panel" id="tests-section">
-                <div class="section-header">
-                    <div class="block-label" id="tests-label">Tests</div>
-                    <span class="test-count" id="test-count"></span>
+            <!-- Tests -->
+            <section class="panel__inner panel" id="tests-section">
+                <div class="panel__head">
+                    <div class="label" id="tests-label">Tests</div>
+                    <span class="count" id="test-count"></span>
                 </div>
-
                 <div id="tests"></div>
-
             </section>
+
         </main>
     </div>
 
-    <div id="browser-notice" class="browser-notice" hidden role="status" aria-live="polite">
-        <div class="browser-notice__icon" aria-hidden="true">
+    <!-- ── BROWSER NOTICE ─────────────────────────────── -->
+    <div id="browser-notice" class="notice" hidden role="status" aria-live="polite">
+        <div class="notice__icon" aria-hidden="true">
             <i class="ri-chrome-fill"></i>
         </div>
-
-        <div class="browser-notice__content">
-            <strong class="browser-notice__title">Better on Chrome</strong>
-            <p class="browser-notice__text">
+        <div class="notice__body">
+            <strong class="notice__title">Better on Chrome</strong>
+            <p class="notice__text">
                 This tool provides more complete device data in Chrome or other Chromium-based browsers.
             </p>
         </div>
-
-        <button type="button" class="browser-notice__close" data-browser-notice-close aria-label="Dismiss notice">
+        <button type="button" class="notice__close" data-notice-close aria-label="Dismiss notice">
             <i class="ri-close-line"></i>
         </button>
     </div>
 
-    <!-- ── OVERLAY ───────────────────────────────────── -->
+    <!-- ── OVERLAY ────────────────────────────────────── -->
     <div class="overlay" id="overlay" aria-hidden="true"></div>
 
-    <!-- ── TIMER BAR ─────────────────────────────────── -->
+    <!-- ── TIMER BAR ──────────────────────────────────── -->
     <div id="timer-bar-container" aria-hidden="true">
         <div id="timer-bar"></div>
     </div>
 
-    <!-- ── GYROSCOPE (fullscreen canvas) ─────────────── -->
-    <div id="gyro-dialog" class="dialog-fullscreen" aria-label="Gyroscope test">
-        <div id="gyro-instructions" class="dialog-instructions"></div>
+    <!-- ── GYROSCOPE ──────────────────────────────────── -->
+    <div id="gyro-dialog" class="dialog" aria-label="Gyroscope test">
+        <div id="gyro-instructions" class="dialog__hint"></div>
         <canvas id="gyro-canvas"></canvas>
     </div>
 
-    <!-- ── COLOR SCREEN (fullscreen) ─────────────────── -->
-    <div id="color-dialog" class="dialog-fullscreen" aria-label="Color screen test">
+    <!-- ── COLOR SCREEN ───────────────────────────────── -->
+    <div id="color-dialog" class="dialog" aria-label="Color screen test">
         <div id="color-screen"
             style="width:100%;height:100%;position:relative;display:flex;justify-content:center;align-items:center;">
-            <div id="color-preview-controls" class="preview-controls">
-                <div id="color-confirm-buttons" class="button-container">
-                    <button id="color-no" class="action-button action-button--fail" aria-label="Fail test">
+            <div id="color-preview-controls" class="preview-bar">
+                <div id="color-confirm-buttons" class="btn-group">
+                    <button id="color-no" class="btn-action btn-action--fail" aria-label="Fail test">
                         <i class="ri-close-line"></i>
                     </button>
-                    <button id="color-yes" class="action-button action-button--pass" aria-label="Pass test">
+                    <button id="color-yes" class="btn-action btn-action--pass" aria-label="Pass test">
                         <i class="ri-check-line"></i>
                     </button>
                 </div>
-                <p id="color-help-text" class="help-text">Tap screen to show or hide controls</p>
+                <p id="color-help-text" class="hint">Tap screen to show or hide controls</p>
             </div>
         </div>
     </div>
 
-    <!-- ── TOUCH (fullscreen canvas) ─────────────────── -->
-    <div id="touch-dialog" class="dialog-fullscreen" aria-label="Touch tracking test">
-        <div class="touch-canvas" id="touch-canvas">
-            <p class="dialog-instructions" id="touch-instructions"></p>
+    <!-- ── TOUCH ──────────────────────────────────────── -->
+    <div id="touch-dialog" class="dialog" aria-label="Touch tracking test">
+        <div class="touch-grid" id="touch-canvas">
+            <p class="dialog__hint" id="touch-instructions"></p>
         </div>
     </div>
 
-    <!-- ── VIBRATION (bottom sheet) ──────────────────── -->
-    <div id="vibration-dialog" class="bottom-sheet" aria-label="Vibration test">
-        <!-- <div class="sheet-handle" aria-hidden="true"></div> -->
-        <div class="sheet-header">
-            <i class="ri-vibrate-line sheet-icon" aria-hidden="true"></i>
+    <!-- ── VIBRATION ──────────────────────────────────── -->
+    <div id="vibration-dialog" class="sheet" aria-label="Vibration test">
+        <div class="sheet__head">
+            <i class="ri-vibrate-line sheet__icon" aria-hidden="true"></i>
             <div>
-                <h3 class="sheet-title">Vibration Test</h3>
-                <p class="sheet-desc">Tap the button below to trigger vibration. Did you feel it?</p>
+                <h3 class="sheet__title">Vibration Test</h3>
+                <p class="sheet__desc">Tap the button below to trigger vibration. Did you feel it?</p>
             </div>
         </div>
         <button id="vibrate-test" class="btn-trigger">
             <i class="ri-vibrate-line"></i>
             <span>Vibrate</span>
         </button>
-        <div class="dialog-buttons">
+        <div class="sheet__actions">
             <button id="vibration-no" class="btn-result btn-result--fail">
                 <i class="ri-close-line"></i> No
             </button>
@@ -156,21 +148,20 @@
         </div>
     </div>
 
-    <!-- ── SOUND (bottom sheet) ──────────────────────── -->
-    <div id="sound-dialog" class="bottom-sheet" aria-label="Speaker test">
-        <!-- <div class="sheet-handle" aria-hidden="true"></div> -->
-        <div class="sheet-header">
-            <i class="ri-volume-up-line sheet-icon" aria-hidden="true"></i>
+    <!-- ── SOUND ──────────────────────────────────────── -->
+    <div id="sound-dialog" class="sheet" aria-label="Speaker test">
+        <div class="sheet__head">
+            <i class="ri-volume-up-line sheet__icon" aria-hidden="true"></i>
             <div>
-                <h3 class="sheet-title">Speaker Test</h3>
-                <p class="sheet-desc">Play the tone and confirm you can hear it clearly.</p>
+                <h3 class="sheet__title">Speaker Test</h3>
+                <p class="sheet__desc">Play the tone and confirm you can hear it clearly.</p>
             </div>
         </div>
         <button id="play-sound" class="btn-trigger">
             <i class="ri-play-circle-line"></i>
             <span>Play Sound</span>
         </button>
-        <div class="dialog-buttons">
+        <div class="sheet__actions">
             <button id="sound-no" class="btn-result btn-result--fail">
                 <i class="ri-close-line"></i> No
             </button>
@@ -180,14 +171,13 @@
         </div>
     </div>
 
-    <!-- ── MICROPHONE (bottom sheet) ─────────────────── -->
-    <div id="mic-dialog" class="bottom-sheet" aria-label="Microphone test">
-        <!-- <div class="sheet-handle" aria-hidden="true"></div> -->
-        <div class="sheet-header">
-            <i class="ri-mic-line sheet-icon" aria-hidden="true"></i>
+    <!-- ── MICROPHONE ─────────────────────────────────── -->
+    <div id="mic-dialog" class="sheet" aria-label="Microphone test">
+        <div class="sheet__head">
+            <i class="ri-mic-line sheet__icon" aria-hidden="true"></i>
             <div>
-                <h3 class="sheet-title">Microphone Test</h3>
-                <p class="sheet-desc">Record 5 seconds of audio, then play it back.</p>
+                <h3 class="sheet__title">Microphone Test</h3>
+                <p class="sheet__desc">Record 5 seconds of audio, then play it back.</p>
             </div>
         </div>
         <canvas id="waveform" width="400" height="64" style="display:none"></canvas>
@@ -204,7 +194,7 @@
             <i class="ri-loop-right-line"></i>
             <span>Re-record</span>
         </button>
-        <div class="dialog-buttons">
+        <div class="sheet__actions">
             <button id="mic-no" class="btn-result btn-result--fail">
                 <i class="ri-close-line"></i> No
             </button>
@@ -214,29 +204,29 @@
         </div>
     </div>
 
-    <!-- ── CAMERA (fullscreen) ───────────────────────── -->
-    <div id="camera-dialog" class="dialog-fullscreen" aria-label="Camera test">
+    <!-- ── CAMERA ─────────────────────────────────────── -->
+    <div id="camera-dialog" class="dialog" aria-label="Camera test">
         <video id="camera-preview" autoplay playsinline></video>
 
-        <div id="camera-controls" class="camera-controls">
-            <button id="capture-button" class="capture-button" aria-label="Take photo">
+        <div id="camera-controls" class="cam-controls">
+            <button id="capture-button" class="btn-capture" aria-label="Take photo">
                 <i class="ri-camera-line"></i>
             </button>
         </div>
 
-        <div id="preview-controls" class="preview-controls hidden">
-            <div id="button-container" class="button-container">
-                <button id="retake-button" class="action-button" aria-label="Retake photo">
+        <div id="preview-controls" class="preview-bar hidden">
+            <div id="button-container" class="btn-group">
+                <button id="retake-button" class="btn-action" aria-label="Retake photo">
                     <i class="ri-arrow-go-back-line"></i>
                 </button>
-                <button id="accept-button" class="action-button action-button--pass" aria-label="Accept photo">
+                <button id="accept-button" class="btn-action btn-action--pass" aria-label="Accept photo">
                     <i class="ri-check-line"></i>
                 </button>
-                <button id="reject-button" class="action-button action-button--fail" aria-label="Reject photo">
+                <button id="reject-button" class="btn-action btn-action--fail" aria-label="Reject photo">
                     <i class="ri-close-line"></i>
                 </button>
             </div>
-            <p id="help-text" class="help-text">Tap screen to show or hide controls</p>
+            <p id="help-text" class="hint">Tap screen to show or hide controls</p>
         </div>
 
         <img id="photo-preview" class="photo-preview hidden" alt="">

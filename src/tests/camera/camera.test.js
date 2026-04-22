@@ -9,12 +9,6 @@
  *   Photo rejected       → fail
  */
 
-// ─── Core ─────────────────────────────────────────────────────────────────────
-
-/**
- * @param {'user'|'environment'} facingMode
- * @param {string} label  e.g. "Front" or "Rear"
- */
 async function cameraTest(facingMode, label) {
   return new Promise((resolve) => {
     const dialog = document.getElementById("camera-dialog");
@@ -38,14 +32,13 @@ async function cameraTest(facingMode, label) {
 
     function toggleControls() {
       controlsVisible = !controlsVisible;
-      buttonContainer.classList.toggle("controls-hidden", !controlsVisible);
-      helpText?.classList.toggle("help-text-hidden", !controlsVisible);
+      buttonContainer.classList.toggle("btn-group--hidden", !controlsVisible);
+      helpText?.classList.toggle("hint--hidden", !controlsVisible);
     }
 
     function stopCamera() {
       stream?.getTracks().forEach((t) => t.stop());
       stream = null;
-
       if (video.srcObject) {
         video.srcObject = null;
         video.load();
@@ -64,7 +57,6 @@ async function cameraTest(facingMode, label) {
 
     async function startCamera() {
       stopCamera();
-
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -80,7 +72,6 @@ async function cameraTest(facingMode, label) {
         controlsVisible = true;
       } catch (error) {
         cleanup();
-
         const isPermission =
           error.name === "NotAllowedError" ||
           error.name === "PermissionDeniedError";
@@ -132,8 +123,6 @@ async function cameraTest(facingMode, label) {
     startCamera();
   });
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 export async function testFrontCamera() {
   return cameraTest("user", "Front");
